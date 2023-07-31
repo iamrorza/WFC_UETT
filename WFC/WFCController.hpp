@@ -53,6 +53,7 @@ void WFCController2(Graph * graph){
 
  
     for(auto node: *graph->nodes){ 
+        
         //std::cout << "Trying run start with node " << node->examID << std::endl;
         graph->resetGraph(graph->numberOfPeriods);
 
@@ -64,6 +65,7 @@ void WFCController2(Graph * graph){
             graph->lastBigCost = graph->totalCost();
             //std::cout << bestNormCost << std::endl;
         }
+        
     
     }
 

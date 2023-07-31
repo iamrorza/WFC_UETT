@@ -281,6 +281,43 @@ bool WFC(Graph * graph, Node * startNode){
     return true;
 }
 
+bool WFC2(Graph * graph, Node * startNode, int startColour){
+
+    bool zeroEntropy = false;
+
+    Node * currentNode;
+
+    if(startNode == nullptr){
+        currentNode = biggestDegreeNode(graph->nodes);
+    } else {
+        currentNode = startNode;
+    }
+    
+
+    startNode->colour=startColour;
+
+    propagate(graph, currentNode);
+
+    currentNode = observe(graph);
+
+    while(graphIncomplete(graph, &zeroEntropy)){
+
+        collapseNodeWithConflictArraySearch(currentNode, graph);
+
+        propagate(graph, currentNode);
+
+        if(graph->currentBigCost > graph->lastBigCost){
+            //std::cout << "Aborting run due to cost. Current " << graph->currentBigCost << " best " << graph->lastBigCost << std::endl;
+            return false;
+        }
+        currentNode = observe(graph);
+    }
+
+    if(zeroEntropy)return false;
+    
+    return true;
+}
+
 /*bool WFC2(Graph * graph, Node * startNode, int startColour){
 
     bool zeroEntropy = false;
