@@ -127,6 +127,39 @@ void Node::resetConflictArray(int ent){
     //this->printConflictArray();
 }
 
+void Node::redoConflictArray(){
+    this->resetConflictArray(this->conflictArray.size());
+
+    for(auto edge: this->conflicts){
+        if(edge->getOtherNode(this)->colour != -1){
+            this->updateConflictArray(edge->getOtherNode(this)->colour, edge->numberOfConflicts);
+        }
+    }
+}
+
+int Node::findSmallestInConflictArray(){
+    int smallest = 100000;
+    int smallestIndex =-1;
+    for(int i = 0; i < this->conflictArray.size(); ++i){
+        if(this->conflictArray.at(i) < smallest && this->conflictArray.at(i) != -1){
+            smallest = this->conflictArray.at(i);
+            smallestIndex = i;
+        }
+    }
+    return smallestIndex;
+}
+
+void Node::changeColour(int desiredColour){
+    this->possibleColours->erase(this->colour);
+    this->possibleColours->insert(desiredColour);
+
+    for(auto edge: this->conflicts){
+        edge->getOtherNode(this)->redoConflictArray();
+    }
+
+    this->colour = desiredColour;
+}
+
 void Node::updateConflictArray(Node * otherNode, int conflicts){
     int colour = otherNode->colour;
     int size = this->conflictArray.size();
@@ -214,7 +247,7 @@ void Node::updateConflictArray(int nodeColour, int conflicts){
 
 void Node::printConflictArray(){
     
-    std::cout << this->examID << ": ";
+    std::cout << this->examID << "(" << this->colour << "): ";
     for(int i = 0; i < this->conflictArray.size(); ++i){
         std::cout << this->conflictArray.at(i) <<", ";
     }
@@ -373,7 +406,7 @@ int Edge::getConflict(){
 
     switch(abs(colour1 - colour2)){
         case 0:
-            std::cout << "Fucked by Node " << this->node1->examID << " and Node " << this->node2->examID << std::endl;
+            //std::cout << "Fucked by Node " << this->node1->examID << " and Node " << this->node2->examID << std::endl;
             return 100000;
         case 1:
             return 16 * this->numberOfConflicts;
@@ -388,6 +421,10 @@ int Edge::getConflict(){
         default:
             return 0;
     }
+}
+
+bool Edge::bothPlaced(){
+    return this->node1->colour != -1 && this->node2->colour != -1;
 }
 
 //GRAPH--------------------------------------------------------------------------------------------------------GRAPH
@@ -700,6 +737,22 @@ class Graph{
             return biggestClasher;
         }
 
+        Node * getBiggestClashNodePerStudent(std::set<Node *> * alreadyChanged){
+            Node * biggestClasher;
+            float biggestClash = 0;
+
+            for(auto node: *this->nodes){
+                if(alreadyChanged->count(node) != 1){
+                    node->getClashWithNeighbours(true);
+                    if(node->clashWithNeighbours/node->numberOfStudents >= biggestClash){
+                        biggestClash = node->clashWithNeighbours/node->numberOfStudents;
+                        biggestClasher = node;
+                    }
+                }
+            }
+            return biggestClasher;
+        }
+
         void getRidOfNoiseAndOneDegreeNodes(){
             this->pruneExams();
             this->putNoiseExamsInVec();
@@ -775,6 +828,30 @@ class Graph{
             for(auto node: *this->nodes){
                 node->actualPlacement = node->colour;
             }
+        }
+
+        Node * getHighestConflictNode(Node * othernode){
+            int biggestCost = 0;
+            Node * best = nullptr;
+
+            for(auto node: *this->nodes){
+                if(node->colour != -1 && node != othernode){
+                    if(node->getCurrentCost() > biggestCost){
+                        biggestCost = node->getCurrentCost();
+                        best = node;
+                    }
+                }
+            }
+            return best;
+        }
+
+        bool invalidGraphNotCountingUnplaced(){
+            for(auto edge: *this->edges){
+                if(edge->bothPlaced()){
+                    if(edge->node1->colour == edge->node2->colour)return true;
+                }
+            }
+            return false;
         }
 };
 

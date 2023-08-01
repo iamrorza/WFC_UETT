@@ -165,13 +165,12 @@ void propagate(Graph * g, Node * n){
     }
 }*/
 
-void collapseNodeWithConflictArraySearch(Node * n, Graph * g){
+bool collapseNodeWithConflictArraySearch(Node * n, Graph * g){
     long long minimum = LLONG_MAX;
     int minIndex = -2;
 
     for(int i = 0; i < n->conflictArray.size(); ++i){
         if(n->conflictArray.at(i) > -1 && n->conflictArray.at(i) < minimum){
-
             //std::cout << "Node " << n->examID << ". " << n->conflictArray.at(i) << " " << minimum << std::endl;
             minimum = n->conflictArray.at(i);
             minIndex = i;
@@ -181,7 +180,11 @@ void collapseNodeWithConflictArraySearch(Node * n, Graph * g){
 
     //std::cout << "collapsedNode: " << minIndex << std::endl;
     n->colour = minIndex;
-    if(minIndex != -2)g->currentBigCost += minimum;
+    if(minIndex != -2){
+        g->currentBigCost += minimum;
+        return true;
+    }
+    return false;
 
 }
 
@@ -244,6 +247,8 @@ Node * getLowestEntropyNeighbour(Node * n, Graph * g){
     return observe(g);
 }
 
+
+
 bool WFC(Graph * graph, Node * startNode){
 
     bool zeroEntropy = false;
@@ -255,7 +260,7 @@ bool WFC(Graph * graph, Node * startNode){
     } else {
         currentNode = startNode;
     }
-    
+
 
     collapse(currentNode);
 
@@ -264,16 +269,19 @@ bool WFC(Graph * graph, Node * startNode){
     currentNode = observe(graph);
 
     while(graphIncomplete(graph, &zeroEntropy)){
+        
 
-        collapseNodeWithConflictArraySearch(currentNode, graph);
-
+        bool found = collapseNodeWithConflictArraySearch(currentNode, graph);
+        if(!found)return false;
         propagate(graph, currentNode);
 
         if(graph->currentBigCost > graph->lastBigCost){
             //std::cout << "Aborting run due to cost. Current " << graph->currentBigCost << " best " << graph->lastBigCost << std::endl;
             return false;
         }
+        
         currentNode = observe(graph);
+        
     }
 
     if(zeroEntropy)return false;
@@ -351,6 +359,56 @@ bool WFC2(Graph * graph, Node * startNode, int startColour){
     return true;
 }*/
 
+/*
+bool WFC3(Graph * graph, Node * startNode, int refreshRate){
+
+    bool zeroEntropy = false;
+
+    Node * currentNode;
+
+    if(startNode == nullptr){
+        currentNode = biggestDegreeNode(graph->nodes);
+    } else {
+        currentNode = startNode;
+    }
+
+    int count = 1;
+    Node * lastMoved = nullptr;
+
+    collapse(currentNode);
+
+    propagate(graph, currentNode);
+
+    currentNode = observe(graph);
+
+    while(graphIncomplete(graph, &zeroEntropy)){
+        if(count % refreshRate == 0){
+            Node * bestCost = graph->getHighestConflictNode(lastMoved);
+            if(bestCost != nullptr){
+                checkForOptimisation(bestCost, graph);
+            }
+            lastMoved = bestCost;
+        }
+        else{
+            bool found = collapseNodeWithConflictArraySearch(currentNode, graph);
+            if(!found)return false;
+            propagate(graph, currentNode);
+
+            if(graph->currentBigCost > graph->lastBigCost){
+                //std::cout << "Aborting run due to cost. Current " << graph->currentBigCost << " best " << graph->lastBigCost << std::endl;
+                return false;
+            }
+            currentNode = observe(graph);
+        }
+        
+        
+        ++count;
+    }
+
+    if(zeroEntropy)return false;
+    
+    return true;
+}*/
 
 int WFCAll(Graph * graph, int currentCheck){
     

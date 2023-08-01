@@ -72,6 +72,34 @@ void WFCController2(Graph * graph){
     graph->loadGraph();
 }
 
+void WFCController3(Graph * graph){
+    
+    int numberOfIters = 1;
+
+    float bestNormCost = 10000;
+    
+    for(auto node: *graph->nodes){ 
+        
+        //std::cout << "Trying run start with node " << node->examID << std::endl;
+        graph->resetGraph(graph->numberOfPeriods);
+
+        bool success = WFC(graph, node);
+        if(success && bestNormCost > graph->normalisedCost()){
+            bestNormCost = graph->lastNormCost;
+            graph->saveGraphNums();
+            graph->lastBigCost = graph->totalCost();
+            //std::cout << bestNormCost << std::endl;
+        }
+    }
+
+    graph->loadGraph();
+
+    
+
+    
+    
+}
+
 /*void WFCController3(Graph * graph){
     float bestNormCost = 10000;
 

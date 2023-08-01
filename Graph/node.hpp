@@ -53,6 +53,12 @@ class Node{
 
         void resetConflictArray(int ent);
 
+        void redoConflictArray();
+
+        int findSmallestInConflictArray();
+
+        void changeColour(int desiredColour);
+
         void updateConflictArray(Node * otherNode, int conflicts);
 
         void updateConflictArray(int nodeColour, int conflicts);

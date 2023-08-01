@@ -26,5 +26,7 @@ class Edge{
         void addNumberOfConflicts();
 
         int getConflict();
+
+        bool bothPlaced();
 };
 #endif
