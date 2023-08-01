@@ -32,7 +32,7 @@ void optstage(Graph * g){
         //if it has a smaller cost, change
         //reset everything around it
 
-        Node * biggestClasher = g->getBiggestClash(&previouslyChanged);
+        Node * biggestClasher = g->getBiggestClashNode(&previouslyChanged);
         bool changed = checkForOptimisation(biggestClasher, g);
 
         if(changed){
