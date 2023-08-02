@@ -21,28 +21,49 @@ bool checkForOptimisation(Node * n, Graph * g){
 }
 
 void optstage(Graph * g){
-    int maxAmountOfIterations = g->numberOfExams * 10;
+    g->saveGraphNums();
 
-    std::set<Node *> previouslyChanged = std::set<Node *>();
+    float norm = g->normalisedCost();
 
-    int lastChanged = 0;
-    for(int i = 1; i <= maxAmountOfIterations; ++i){
-        //choose highest conflicting node
-        //see if it can be changed
-        //if it has a smaller cost, change
-        //reset everything around it
+    for(int _ = 0; _ < 5; ++_){
+        g->loadGraph();
 
-        Node * biggestClasher = g->getBiggestClashNode(&previouslyChanged);
-        bool changed = checkForOptimisation(biggestClasher, g);
+        int maxAmountOfIterations = g->numberOfExams * 10;
 
-        if(changed){
-            previouslyChanged.clear();
-        }
-        previouslyChanged.insert(biggestClasher);
-
-        if(i - lastChanged == g->numberOfExams)break;
+        std::set<Node *> previouslyChanged = std::set<Node *>();
         
+        int lastChanged = 0;
+        for(int i = 1; i <= maxAmountOfIterations; ++i){
+            //choose highest conflicting node
+            //see if it can be changed
+            //if it has a smaller cost, change
+            //reset everything around it
+
+            Node * biggestClasher = g->getRandomNode(&previouslyChanged);
+
+            if(biggestClasher == nullptr)break;
+            
+            bool changed = checkForOptimisation(biggestClasher, g);
+
+            if(changed){
+                lastChanged = i;
+                previouslyChanged.clear();
+            }
+            previouslyChanged.insert(biggestClasher);
+
+            if(i - lastChanged == g->numberOfExams){
+                std::cout << "Broken Out after " << i << "/" << maxAmountOfIterations << std::endl;
+                break;
+            }
+        }
+
+        if(g->normalisedCost() < norm){
+            g->setAllNodesActualAsColour();
+            norm = g->normalisedCost();
+        }
     }
+    g->setAllNodesActualAsColour();
+    
 
 }
 #endif

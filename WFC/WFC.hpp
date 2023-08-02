@@ -212,22 +212,34 @@ Node * observe(Graph * graph){
     int lowestEntropy = 1000000;
     int index = 0;
     bool anyZeroEnts = false;
+    
     for(int i = 0; i < graph->numberOfExams; ++i){
+
         Node * currentNode = graph->nodes->at(i);
-        if(currentNode->colour == -1 && currentNode->getEntropy() < lowestEntropy){
-            if(currentNode->getEntropy() == 0){
-                anyZeroEnts = true;
+
+        int entropy = currentNode->getEntropy();
+
+        if(currentNode->colour == -1){
+
+            if(entropy < lowestEntropy){
+                if(currentNode->getEntropy() == 0){
+                    anyZeroEnts = true;
                 //std::cout << "ZERRO ENT" << std::endl;
+                }
+                lowestEntropy = currentNode->getEntropy();
+                index = i;
             }
-            lowestEntropy = currentNode->getEntropy();
-            index = i;
+
+            //currentNode->degree/currentNode->numberOfStudents < graph->nodes->at(index)->degree/graph->nodes->at(index)->numberOfStudents
+
+            else if(entropy == lowestEntropy && currentNode->degree/currentNode->numberOfStudents < graph->nodes->at(index)->degree/graph->nodes->at(index)->numberOfStudents){
+                index = i;
+            }
         }
     }
-
     if(anyZeroEnts)return nullptr;  
         
     return graph->nodes->at(index);
-
 }
 
 Node * getLowestEntropyNeighbour(Node * n, Graph * g){

@@ -9,10 +9,15 @@
 #include <algorithm>
 #include <cmath>
 #include <map>
+#include <random>
 
 #include "node.hpp"
 #include "edge.hpp"
 
+int getRandomFromMax2(int max){
+    int random = (std::rand() % max);
+    return random;
+}
 //NODE--------------------------------------------------------------------------------------------------------NODE
 Node::Node(int examID, int numberOfStudents){
     this->examID = examID;
@@ -571,57 +576,12 @@ class Graph{
             return normCost;
         }
 
-        float totalCostNewPlacement(){
-            int totalCost = 0;
-            //std::cout << "Exams: " << this->numberOfExams << ", Students: " << this->numberOfStudents << ", Periods: " << this->numberOfPeriods << std::endl;
-            
-            for(int i= 0; i < this->edges->size(); ++i){
-                Node * n1 = this->edges->at(i)->node1;
-                Node * n2 = this->edges->at(i)->node2;
-
-                if(abs(n1->actualPlacement - n2->actualPlacement) == 0){ return 10000;}
-                else if(abs(n1->actualPlacement - n2->actualPlacement) == 1) totalCost += 16 * this->edges->at(i)->numberOfConflicts;
-                else if(abs(n1->actualPlacement - n2->actualPlacement) == 2) totalCost += 8 * this->edges->at(i)->numberOfConflicts;
-                else if(abs(n1->actualPlacement - n2->actualPlacement) == 3) totalCost += 4 * this->edges->at(i)->numberOfConflicts;
-                else if(abs(n1->actualPlacement - n2->actualPlacement) == 4) totalCost += 2 * this->edges->at(i)->numberOfConflicts;
-                else if(abs(n1->actualPlacement - n2->actualPlacement) == 5) totalCost += 1 * this->edges->at(i)->numberOfConflicts;
-            }
-            //std::cout << "Total Cost: " << totalCost << std::endl;
-            this->lastCalculatedBigCost = totalCost;
-            return totalCost;
-        }
-
-        float normalisedCostNewPlacement(){
-            return this->totalCostNewPlacement()/this->numberOfStudents;
-        }
-
         void printNormCost(){
             std::cout <<  "Normalised Cost " << normalisedCost() << std::endl;
         }
 
         int numOfConflicts(){
             return this->edges->size();
-        }
-
-        void setNodesToSecondStage(){
-            for(int i = 0; i < this->nodes->size(); ++i){
-                this->nodes->at(i)->setSecondStagePossible(this->numberOfPeriods);
-            }
-        }
-
-        void upperBounds(){
-            std::cout << "Chromatic Number: " << this->getChromaticNumber() << std::endl; 
-            std::cout << "Upper Bound of NumOfNodes+1 " << std::to_string(this->nodes->size()+1) << std::endl;
-            std::cout << "Upper bound CHromatic Number Formula - 1/2 + sqrt(2 * numOfEdges + 1/4) " << (0.5 + std::sqrt(2 * this->edges->size() + 0.25)) << std::endl;
-        }
-
-        Edge * getStartingEdge(int n1, int n2){
-            for (auto edge : *edges) {
-                if(edge->node1->colour == n1 || edge->node1->colour == n2){
-                    if(edge->node2->colour == n1 || edge->node2->colour == n2)return edge;
-                }
-            }
-            return nullptr;
         }
 
         bool seeIfAnyColours(int col){
@@ -760,54 +720,6 @@ class Graph{
             std::cout << "Noise: " << this->noiseExams->size() << " , Pruned: " << this->prunedExams << std::endl;
         }
 
-        void rotate(){
-            int chromNumber = this->getChromaticNumber();
-            int lowestCost = this->normalisedCost();
-            this->setAllNodesActualAsColour();
-            int rotateNum = -1;
-            for(int i = 0; i < chromNumber; ++i){
-                for(auto node: *this->nodes){
-                    node->actualPlacement = node->actualPlacement+1 % chromNumber;
-                }
-                if(this->normalisedCostNewPlacement() < lowestCost){
-                    lowestCost = this->normalisedCostNewPlacement();
-                    rotateNum = i+1;
-                }
-            }
-            if(rotateNum != -1){
-                for(auto node: *this->nodes){
-                    node->colour = node->colour+rotateNum % chromNumber;
-                }
-                this->setAllNodesActualAsColour();
-                std::cout << "Rotated by " << rotateNum << std::endl;
-            }
-
-        }
-
-        void rotate2(){
-            int chromNumber = this->getChromaticNumber();
-            int lowestCost = this->totalCost();
-            this->setAllNodesActualAsColour();
-            int rotateNum = -1;
-            for(int i = 0; i < chromNumber; ++i){
-                for(auto node: *this->nodes){
-                    node->actualPlacement = node->actualPlacement+1 % chromNumber;
-                }
-                if(this->normalisedCostNewPlacement() < lowestCost){
-                    lowestCost = this->totalCostNewPlacement();
-                    rotateNum = i+1;
-                }
-            }
-            if(rotateNum != -1){
-                for(auto node: *this->nodes){
-                    node->colour = node->colour+rotateNum % chromNumber;
-                }
-                this->setAllNodesActualAsColour();
-                std::cout << "Rotated by " << rotateNum << std::endl;
-            }
-
-        }
-
         std::map<int,int> getMap(){
             std::map<int, int> newMap = std::map<int, int>();
 
@@ -852,6 +764,25 @@ class Graph{
                 }
             }
             return false;
+        }
+
+        Node * getRandomNode(std::set<Node *> * alreadyChanged){
+
+            std::vector<Node *> notChanged = std::vector<Node *>();
+
+            for(auto node: *this->nodes){
+                if(alreadyChanged->count(node) == 0){
+                    notChanged.push_back(node);
+                }
+            }
+            int random = rand()%notChanged.size();
+
+            if(notChanged.size() == 0)return nullptr;
+            
+
+            Node * randomNode = notChanged.at(random);
+            return randomNode;
+            
         }
 };
 

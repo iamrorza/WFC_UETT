@@ -176,16 +176,16 @@ void benchmarkAllButPur(int n){
     
 }
 
-
+std::random_device rd;
+std::mt19937 gen(rd());
 
 int main(){
-    
+
     //benchmarkAll(1);
    //testAllTestCases();
     
     std::pair<float, float> results;
-    std::string CLASSICurl= "../../ExamSchedulingTestData/CarterEtAl Instances/pur93";
-    //Run(CLASSICurl);
+    std::string CLASSICurl= "../../ExamSchedulingTestData/CarterEtAl Instances/rye93";
     results = benchmarkN(CLASSICurl, 1);
     std::cout << results.first << " " << results.second << std::endl;
 
