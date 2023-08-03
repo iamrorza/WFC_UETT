@@ -23,8 +23,8 @@ float TestRun(std::string url){
     //ThirdStage(graph);
     //graph->printNormCost();
     optstage(graph);
-
-    return graph->normalisedCost();
+    //optmultistage(graph);
+    return graph->normalisedCost(true);
 }
 
 std::pair<float,float> benchMark(std::string url, bool cost){
@@ -112,6 +112,27 @@ void benchmarkClassic(int n){
     }
 }
 
+void benchmarkITC(int n){
+    std::pair<float, float> results;
+    /*BELLIO ET ALL NEW ITC2007 INSTANCES*/
+    std::string BETurl = "../../ExamSchedulingTestData/BellioEtAlInstances/ITC2007_";
+    for(int j = 1; j<= 12; ++j){
+        results = benchmarkN(BETurl + std::to_string(j) , n);
+        std::cout << "ITC2007_" << std::to_string(j) << " " << std::to_string(results.first) << " "  << std::to_string(results.second) << std::endl;
+    }
+}
+
+void benchmarkDS(int n){
+    std::pair<float, float> results;
+    /*BELLIO ET ALL NEW DC INSTANCES*/
+    std::string DSurl= "../../ExamSchedulingTestData/BellioEtAlInstances/";
+    std::vector<std::string> dsInstances = {"D1-2-17", "D5-1-17", "D5-1-18", "D5-2-17", "D5-2-18","D5-3-18", "D6-1-18", "D6-2-18"};
+    for(int j = 0; j< 8; ++j){
+        results = benchmarkN(DSurl + dsInstances[j], n);
+        std::cout << dsInstances[j] << " " << std::to_string(results.first) << " "  << std::to_string(results.second) << std::endl;
+    }
+
+}
 void benchmarkAll(int n){
 
     std::pair<float, float> results;
@@ -184,12 +205,13 @@ int main(){
     //benchmarkAll(1);
    //testAllTestCases();
     
-    std::pair<float, float> results;
+    /*std::pair<float, float> results;
     std::string CLASSICurl= "../../ExamSchedulingTestData/CarterEtAl Instances/rye93";
     results = benchmarkN(CLASSICurl, 1);
     std::cout << results.first << " " << results.second << std::endl;
+    */
 
-    //benchmarkAllButPur(1);
+    benchmarkAllButPur(1);
     //benchmarkClassic(1);
     return 0;
 }

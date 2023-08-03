@@ -59,10 +59,10 @@ void WFCController2(Graph * graph){
 
         bool success = WFC(graph, node);
         
-        if(success && bestNormCost > graph->normalisedCost()){
+        if(success && bestNormCost > graph->normalisedCost(true)){
             bestNormCost = graph->lastNormCost;
             graph->saveGraphNums();
-            graph->lastBigCost = graph->totalCost();
+            graph->lastBigCost = graph->totalCost(true);
             //std::cout << bestNormCost << std::endl;
         }
         
@@ -84,10 +84,10 @@ void WFCController3(Graph * graph){
         graph->resetGraph(graph->numberOfPeriods);
 
         bool success = WFC(graph, node);
-        if(success && bestNormCost > graph->normalisedCost()){
+        if(success && bestNormCost > graph->normalisedCost(true)){
             bestNormCost = graph->lastNormCost;
             graph->saveGraphNums();
-            graph->lastBigCost = graph->totalCost();
+            graph->lastBigCost = graph->totalCost(true);
             //std::cout << bestNormCost << std::endl;
         }
     }

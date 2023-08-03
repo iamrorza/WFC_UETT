@@ -212,7 +212,7 @@ Node * observe(Graph * graph){
     int lowestEntropy = 1000000;
     int index = 0;
     bool anyZeroEnts = false;
-    
+
     for(int i = 0; i < graph->numberOfExams; ++i){
 
         Node * currentNode = graph->nodes->at(i);
@@ -229,9 +229,7 @@ Node * observe(Graph * graph){
                 lowestEntropy = currentNode->getEntropy();
                 index = i;
             }
-
             //currentNode->degree/currentNode->numberOfStudents < graph->nodes->at(index)->degree/graph->nodes->at(index)->numberOfStudents
-
             else if(entropy == lowestEntropy && currentNode->degree/currentNode->numberOfStudents < graph->nodes->at(index)->degree/graph->nodes->at(index)->numberOfStudents){
                 index = i;
             }

@@ -546,7 +546,7 @@ class Graph{
             //std::cout << "Biggest Degree of graph is " << this->biggestDegree << std::endl;
         }
 
-        float totalCost(){
+        float totalCost(bool setColour){
             int totalCost = 0;
             //std::cout << "Exams: " << this->numberOfExams << ", Students: " << this->numberOfStudents << ", Periods: " << this->numberOfPeriods << std::endl;
             
@@ -554,12 +554,21 @@ class Graph{
                 Node * n1 = this->edges->at(i)->node1;
                 Node * n2 = this->edges->at(i)->node2;
 
-                if(abs(n1->colour - n2->colour) == 0)std::cout << "CANNOT OCCUR. PROGRAM BROKEN" << std::endl;
-                else if(abs(n1->colour - n2->colour) == 1) totalCost += 16 * this->edges->at(i)->numberOfConflicts;
-                else if(abs(n1->colour - n2->colour) == 2) totalCost += 8 * this->edges->at(i)->numberOfConflicts;
-                else if(abs(n1->colour - n2->colour) == 3) totalCost += 4 * this->edges->at(i)->numberOfConflicts;
-                else if(abs(n1->colour - n2->colour) == 4) totalCost += 2 * this->edges->at(i)->numberOfConflicts;
-                else if(abs(n1->colour - n2->colour) == 5) totalCost += 1 * this->edges->at(i)->numberOfConflicts;
+                int colour1, colour2;
+                if(setColour){
+                    colour1 = this->edges->at(i)->node1->colour;
+                    colour2 = this->edges->at(i)->node2->colour;
+                } else {
+                    colour1 = this->edges->at(i)->node1->actualPlacement;
+                    colour2 = this->edges->at(i)->node2->actualPlacement;
+                }
+
+                if(abs(colour1-colour2) == 0)std::cout << "CANNOT OCCUR. PROGRAM BROKEN" << std::endl;
+                else if(abs(colour1-colour2) == 1) totalCost += 16 * this->edges->at(i)->numberOfConflicts;
+                else if(abs(colour1-colour2) == 2) totalCost += 8 * this->edges->at(i)->numberOfConflicts;
+                else if(abs(colour1-colour2) == 3) totalCost += 4 * this->edges->at(i)->numberOfConflicts;
+                else if(abs(colour1-colour2) == 4) totalCost += 2 * this->edges->at(i)->numberOfConflicts;
+                else if(abs(colour1-colour2) == 5) totalCost += 1 * this->edges->at(i)->numberOfConflicts;
             }
             //std::cout << "Total Cost: " << totalCost << std::endl;
             return totalCost;
@@ -568,8 +577,8 @@ class Graph{
         void printGraphInfo(){
             std::cout << "Exams: " << this->numberOfExams << ", Students: " << this->numberOfStudents << ", Periods: " << this->numberOfPeriods << std::endl;
         }
-        float normalisedCost(){
-            float total = this->totalCost();
+        float normalisedCost(bool setColour){
+            float total = this->totalCost(setColour);
             float normCost = total/this->numberOfStudents;
 
             this->lastNormCost = normCost;
@@ -577,7 +586,7 @@ class Graph{
         }
 
         void printNormCost(){
-            std::cout <<  "Normalised Cost " << normalisedCost() << std::endl;
+            std::cout <<  "Normalised Cost " << normalisedCost(true) << std::endl;
         }
 
         int numOfConflicts(){
@@ -602,13 +611,11 @@ class Graph{
                 std::cout << "NODe " << i << " " << this->nodes->at(i)->colour << " " << this->nodes->at(i)->actualPlacement << std::endl;
             }   
         }
+
         void printColour(){
             for(int i = 0; i < this->nodes->size(); ++i){
                 std::cout << "NODe " << i << " " << this->nodes->at(i)->colour << std::endl;
             }   
-        }
-        void printOnlyNCost(){
-            std::cout << normalisedCost() << std::endl;
         }
 
         std::vector<Node *> getNodesFromColour(int colour){
@@ -783,6 +790,52 @@ class Graph{
             Node * randomNode = notChanged.at(random);
             return randomNode;
             
+        }
+
+        std::set<Node *> * getNRandomNodes(std::set<Node *> * alreadyChanged, int n){
+            std::set<Node *> * chosenNodes = new std::set<Node *>();
+
+            std::vector<Node *> notChanged = std::vector<Node *>();
+
+            for(auto node: *this->nodes){
+                if(alreadyChanged->count(node) == 0){
+                    notChanged.push_back(node);
+                }
+            }
+
+            if(notChanged.size() <= n)return nullptr;
+
+            std::srand(unsigned(std::time(nullptr)));
+
+            std::vector<int> randNum = std::vector<int>();
+
+            for(int i = 0; i < n; ++i)randNum.push_back(rand() % notChanged.size());
+
+    
+
+            for(auto randomNumber: randNum)chosenNodes->insert(notChanged.at(randomNumber));
+
+            return chosenNodes;
+        }
+
+        void rotate(){
+            int rotate = 0;
+            int bestRotate = 1000000;
+            for(int i = 1; i <= this->numberOfPeriods; ++i){
+                for(auto node: *this->nodes){
+                    node->actualPlacement = (node->colour + i)%this->numberOfPeriods;
+                }
+                if(this->normalisedCost(false) < bestRotate){
+                    rotate = i;
+                }
+            }
+            if(rotate != this->numberOfPeriods){
+                std::cout << "Rotated by " << rotate << std::endl;
+                for(auto node: *this->nodes){
+                    node->colour = (node->colour + rotate)%this->numberOfPeriods;
+                }
+            }
+
         }
 };
 

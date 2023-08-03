@@ -5,6 +5,8 @@
 
 #include "Graph/graph.hpp"
 
+
+
 bool checkForOptimisation(Node * n, Graph * g){
     //reset the conflict array
     
@@ -20,15 +22,18 @@ bool checkForOptimisation(Node * n, Graph * g){
     return false;
 }
 
+
+
+
 void optstage(Graph * g){
     g->saveGraphNums();
 
-    float norm = g->normalisedCost();
+    float norm = g->normalisedCost(true);
 
     for(int _ = 0; _ < 5; ++_){
         g->loadGraph();
 
-        int maxAmountOfIterations = g->numberOfExams * 10;
+        int maxAmountOfIterations = g->numberOfExams * 20;
 
         std::set<Node *> previouslyChanged = std::set<Node *>();
         
@@ -38,32 +43,34 @@ void optstage(Graph * g){
             //see if it can be changed
             //if it has a smaller cost, change
             //reset everything around it
-
             Node * biggestClasher = g->getRandomNode(&previouslyChanged);
 
-            if(biggestClasher == nullptr)break;
-            
-            bool changed = checkForOptimisation(biggestClasher, g);
-
-            if(changed){
-                lastChanged = i;
+            if(biggestClasher == nullptr){
                 previouslyChanged.clear();
             }
-            previouslyChanged.insert(biggestClasher);
+            else{
+                bool changed = checkForOptimisation(biggestClasher, g);
 
-            if(i - lastChanged == g->numberOfExams){
-                std::cout << "Broken Out after " << i << "/" << maxAmountOfIterations << std::endl;
-                break;
+                if(changed){
+                    lastChanged = i;
+                    previouslyChanged.clear();
+                }
+                previouslyChanged.insert(biggestClasher);
+                
+                if(i - lastChanged == g->numberOfExams){
+                    std::cout << "Broken Out after " << i << "/" << maxAmountOfIterations << std::endl;
+                    break;
+                }
             }
         }
 
-        if(g->normalisedCost() < norm){
+        if(g->normalisedCost(true) < norm){
             g->setAllNodesActualAsColour();
-            norm = g->normalisedCost();
+            norm = g->normalisedCost(true);
         }
     }
     g->setAllNodesActualAsColour();
-    
+
 
 }
 #endif
