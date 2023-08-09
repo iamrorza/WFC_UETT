@@ -22,7 +22,7 @@ float TestRun(std::string url){
     WFCController3(graph);
     //ThirdStage(graph);
     //graph->printNormCost();
-    optstage(graph);
+    optstage2(graph);
     //optmultistage(graph);
     return graph->normalisedCost(true);
 }
@@ -197,20 +197,19 @@ void benchmarkAllButPur(int n){
     
 }
 
-std::random_device rd;
-std::mt19937 gen(rd());
+
 
 int main(){
-
+    srand(time(NULL));
     //benchmarkAll(1);
    //testAllTestCases();
     
-    /*std::pair<float, float> results;
-    std::string CLASSICurl= "../../ExamSchedulingTestData/CarterEtAl Instances/rye93";
-    results = benchmarkN(CLASSICurl, 1);
-    std::cout << results.first << " " << results.second << std::endl;
-    */
-
+    //std::pair<float, float> results;
+    //std::string CLASSICurl= "../../ExamSchedulingTestData/CarterEtAl Instances/car92";
+    //results = benchmarkN(CLASSICurl, 1);
+    //std::cout << results.first << " " << results.second << std::endl;
+    
+    //benchmarkDS(1);
     benchmarkAllButPur(1);
     //benchmarkClassic(1);
     return 0;

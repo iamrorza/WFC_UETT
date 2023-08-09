@@ -703,16 +703,32 @@ class Graph{
             }
             return biggestClasher;
         }
+        Node * getBiggestClashNode(){
+            Node * biggestClasher;
+            int biggestClash = 0;
 
+            for(auto node: *this->nodes){
+                node->getClashWithNeighbours(true);
+                if(node->clashWithNeighbours >= biggestClash){
+                    biggestClash = node->clashWithNeighbours;
+                    biggestClasher = node;
+                }
+            }
+            
+            return biggestClasher;
+        }
         Node * getBiggestClashNodePerStudent(std::set<Node *> * alreadyChanged){
             Node * biggestClasher;
             float biggestClash = 0;
 
             for(auto node: *this->nodes){
+
                 if(alreadyChanged->count(node) != 1){
+
                     node->getClashWithNeighbours(true);
-                    if(node->clashWithNeighbours/node->numberOfStudents >= biggestClash){
-                        biggestClash = node->clashWithNeighbours/node->numberOfStudents;
+
+                    if(node->clashWithNeighbours >= biggestClash){
+                        biggestClash = node->clashWithNeighbours;
                         biggestClasher = node;
                     }
                 }
@@ -791,6 +807,7 @@ class Graph{
             return randomNode;
             
         }
+
 
         std::set<Node *> * getNRandomNodes(std::set<Node *> * alreadyChanged, int n){
             std::set<Node *> * chosenNodes = new std::set<Node *>();

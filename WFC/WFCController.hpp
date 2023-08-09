@@ -104,18 +104,17 @@ void WFCController3(Graph * graph){
     float bestNormCost = 10000;
 
     for(auto node: *graph->nodes){ 
-        std::cout << "\r" << node->examID << "/" << graph->numberOfExams;
         if(node->conflicts.size() != 0){
         
             for(int i = 0; i < graph->numberOfPeriods; ++i){
                 graph->resetGraph(graph->numberOfPeriods);
                 bool success = WFC2(graph, node, i);
                 
-                if(success && bestNormCost > graph->normalisedCost()){
+                if(success && bestNormCost > graph->normalisedCost(true)){
                     bestNormCost = graph->lastNormCost;
-                    graph->lastBigCost = graph->totalCost();
+                    graph->lastBigCost = graph->totalCost(true);
                     graph->saveGraphNums();
-                    std::cout << "\nNew Best: " << bestNormCost << " on Node " << node->examID << ", First placed: " << i ;
+                    std::cout << "New Best: " << bestNormCost << " on Node " << node->examID << ", First placed: " << i << std::endl;
                 }
             }
         }
