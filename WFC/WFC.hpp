@@ -224,7 +224,7 @@ Node * observe(Graph * graph){
             if(entropy < lowestEntropy){
                 if(currentNode->getEntropy() == 0){
                     anyZeroEnts = true;
-                //std::cout << "ZERRO ENT" << std::endl;
+                    //std::cout << "ZERRO ENT" << std::endl;
                 }
                 lowestEntropy = currentNode->getEntropy();
                 index = i;
@@ -239,6 +239,7 @@ Node * observe(Graph * graph){
         
     return graph->nodes->at(index);
 }
+
 
 Node * getLowestEntropyNeighbour(Node * n, Graph * g){
     int lowestEntropy = 1000000;
@@ -261,9 +262,12 @@ Node * getLowestEntropyNeighbour(Node * n, Graph * g){
 
 bool WFC(Graph * graph, Node * startNode){
 
+    int count = 0;
     bool zeroEntropy = false;
 
     Node * currentNode;
+
+    std::vector<int> * placedNodes = new std::vector<int>();
 
     if(startNode == nullptr){
         currentNode = biggestDegreeNode(graph->nodes);
@@ -273,16 +277,19 @@ bool WFC(Graph * graph, Node * startNode){
 
 
     collapse(currentNode);
+    placedNodes->push_back(currentNode->examID);
 
     propagate(graph, currentNode);
 
     currentNode = observe(graph);
 
     while(graphIncomplete(graph, &zeroEntropy)){
-        
+        float random = (float)rand()/RAND_MAX;
 
         bool found = collapseNodeWithConflictArraySearch(currentNode, graph);
         if(!found)return false;
+        
+        placedNodes->push_back(currentNode->examID);
         propagate(graph, currentNode);
 
         if(graph->currentBigCost > graph->lastBigCost){
@@ -290,12 +297,19 @@ bool WFC(Graph * graph, Node * startNode){
             return false;
         }
         
-        currentNode = observe(graph);
         
+        if(random < 0.0011){
+            int index = placedNodes->at(getRandomFromMax(placedNodes->size()));
+            currentNode = graph->nodes->at(index-1);
+            ++count;
+        }
+        else{
+            currentNode = observe(graph);
+        }
     }
 
     if(zeroEntropy)return false;
-    
+
     return true;
 }
 

@@ -49,7 +49,6 @@ void optstage(Graph * g){
 
     float norm = g->normalisedCost(true);
 
-    
     g->loadGraph();
 
     int maxAmountOfIterations = g->numberOfExams * 100 ;
@@ -98,7 +97,6 @@ void optstage2(Graph * g){
 
     float norm = g->normalisedCost(true);
 
-    
     g->loadGraph();
 
     int maxAmountOfIterations = g->numberOfExams * 100 ;
@@ -108,13 +106,12 @@ void optstage2(Graph * g){
     int lastChanged = 0;
 
     Node * biggestClasher = g->getBiggestClashNodePerStudent(&previouslyChanged);
-
+    
     for(int i = 1; i <= maxAmountOfIterations; ++i){
         //choose highest conflicting node
         //see if it can be changed
         //if it has a smaller cost, change
         //reset everything around it
-       
         if(biggestClasher == nullptr){
             //std::cout << "Broken Out after " << i << "/" << maxAmountOfIterations << std::endl;
             //break;
@@ -125,7 +122,6 @@ void optstage2(Graph * g){
             bool changed = checkForOptimisation(biggestClasher, g);
 
             if(changed){
-                
                 lastChanged = i;
                 previouslyChanged.clear();
             }

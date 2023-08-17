@@ -204,13 +204,13 @@ int main(){
     //benchmarkAll(1);
    //testAllTestCases();
     
-    //std::pair<float, float> results;
-    //std::string CLASSICurl= "../../ExamSchedulingTestData/CarterEtAl Instances/car92";
-    //results = benchmarkN(CLASSICurl, 1);
-    //std::cout << results.first << " " << results.second << std::endl;
+    std::pair<float, float> results;
+    std::string CLASSICurl= "../../ExamSchedulingTestData/CarterEtAl Instances/car91";
+    results = benchmarkN(CLASSICurl, 1);
+    std::cout << results.first << " " << results.second << std::endl;
     
     //benchmarkDS(1);
-    benchmarkAllButPur(1);
+    //benchmarkAllButPur(1);
     //benchmarkClassic(1);
     return 0;
 }
