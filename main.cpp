@@ -200,6 +200,7 @@ void benchmarkAllButPur(int n, RecordKeeper * rk){
 
 int main(){
     srand(time(NULL));
+    RecordKeeper rk = RecordKeeper();
     benchmarkAll(1, &rk);
    //testAllTestCases();
     
@@ -212,5 +213,6 @@ int main(){
     //benchmarkAllButPur(1);
     //benchmarkClassic(1);
 
+    //rk.writeOut()
     return 0;
 }
