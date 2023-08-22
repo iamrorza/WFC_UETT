@@ -7,7 +7,7 @@
 #include "inputReader.hpp"
 #include "WFC/WFCController.hpp"
 #include "OptStage.hpp"
-
+#include "recordKeeper.hpp"
 
 void Run(std::string url){
     Graph * graph = readTextFile(url);
@@ -25,12 +25,13 @@ float TestRun(std::string url){
     return graph->normalisedCost(true);
 }
 
-std::pair<float,float> benchMark(std::string url, bool cost){
+std::pair<float,float> benchMark(std::string url, bool cost, RecordKeeper * rk){
     std::pair<float, float> pair;
     int start = clock();
     pair.first = TestRun(url);
     int stop = clock();
     pair.second = (stop-start)/double(CLOCKS_PER_SEC) * 1000;
+    rk->compare(url, pair.first, pair.second);
     return pair;
 }
 
@@ -80,11 +81,11 @@ void testAllTestCases(){
 
 }
 
-std::pair<float, float> benchmarkN(std::string url, int N){
+std::pair<float, float> benchmarkN(std::string url, int N, RecordKeeper * rk){
     float totalTime = 0;
     float best = 10000;
     for(int i = 0; i < N; ++i){
-        std::pair<float, float> res = benchMark(url, false);
+        std::pair<float, float> res = benchMark(url, false, rk);
 
         if(res.first < best){
             best = res.first;
@@ -97,7 +98,7 @@ std::pair<float, float> benchmarkN(std::string url, int N){
     return ret;
 }
 
-void benchmarkClassic(int n){
+void benchmarkClassic(int n, RecordKeeper * rk){
     std::pair<float, float> results;
     /*Classic Instances*/
 
@@ -105,33 +106,33 @@ void benchmarkClassic(int n){
     std::vector<std::string> classicInstances = {"car91", "car92", "ear83", "hec92", "kfu93", "lse91","pur93", "rye93", "sta83","tre92","uta92","ute92","yor83"};
     for(int j = 0; j< 13; ++j){
         //std::cout << "-----------------------------------" << std::endl;
-        results = benchmarkN(CLASSICurl + classicInstances[j], n);
+        results = benchmarkN(CLASSICurl + classicInstances[j], n, rk);
         std::cout << classicInstances[j] << " " << std::to_string(results.first) << " "  << std::to_string(results.second) << std::endl;
     }
 }
 
-void benchmarkITC(int n){
+void benchmarkITC(int n, RecordKeeper * rk){
     std::pair<float, float> results;
     /*BELLIO ET ALL NEW ITC2007 INSTANCES*/
     std::string BETurl = "../../ExamSchedulingTestData/BellioEtAlInstances/ITC2007_";
     for(int j = 1; j<= 12; ++j){
-        results = benchmarkN(BETurl + std::to_string(j) , n);
+        results = benchmarkN(BETurl + std::to_string(j) , n, rk);
         std::cout << "ITC2007_" << std::to_string(j) << " " << std::to_string(results.first) << " "  << std::to_string(results.second) << std::endl;
     }
 }
 
-void benchmarkDS(int n){
+void benchmarkDS(int n, RecordKeeper * rk){
     std::pair<float, float> results;
     /*BELLIO ET ALL NEW DC INSTANCES*/
     std::string DSurl= "../../ExamSchedulingTestData/BellioEtAlInstances/";
     std::vector<std::string> dsInstances = {"D1-2-17", "D5-1-17", "D5-1-18", "D5-2-17", "D5-2-18","D5-3-18", "D6-1-18", "D6-2-18"};
     for(int j = 0; j< 8; ++j){
-        results = benchmarkN(DSurl + dsInstances[j], n);
+        results = benchmarkN(DSurl + dsInstances[j], n, rk);
         std::cout << dsInstances[j] << " " << std::to_string(results.first) << " "  << std::to_string(results.second) << std::endl;
     }
 
 }
-void benchmarkAll(int n){
+void benchmarkAll(int n, RecordKeeper * rk){
 
     std::pair<float, float> results;
     /*Classic Instances*/
@@ -140,7 +141,7 @@ void benchmarkAll(int n){
     std::vector<std::string> classicInstances = {"car91", "car92", "ear83", "hec92", "kfu93", "lse91","pur93", "rye93", "sta83","tre92","uta92","ute92","yor83"};
     for(int j = 0; j< 13; ++j){
         //std::cout << "-----------------------------------" << std::endl;
-        results = benchmarkN(CLASSICurl + classicInstances[j], n);
+        results = benchmarkN(CLASSICurl + classicInstances[j], n, rk);
         std::cout << classicInstances[j] << " " << std::to_string(results.first) << " "  << std::to_string(results.second) << std::endl;
     }
     
@@ -148,7 +149,7 @@ void benchmarkAll(int n){
     /*BELLIO ET ALL NEW ITC2007 INSTANCES*/
     std::string BETurl = "../../ExamSchedulingTestData/BellioEtAlInstances/ITC2007_";
     for(int j = 1; j<= 12; ++j){
-        results = benchmarkN(BETurl + std::to_string(j) , n);
+        results = benchmarkN(BETurl + std::to_string(j) , n, rk);
         std::cout << "ITC2007_" << std::to_string(j) << " " << std::to_string(results.first) << " "  << std::to_string(results.second) << std::endl;
     }
 
@@ -156,14 +157,14 @@ void benchmarkAll(int n){
     std::string DSurl= "../../ExamSchedulingTestData/BellioEtAlInstances/";
     std::vector<std::string> dsInstances = {"D1-2-17", "D5-1-17", "D5-1-18", "D5-2-17", "D5-2-18","D5-3-18", "D6-1-18", "D6-2-18"};
     for(int j = 0; j< 8; ++j){
-        results = benchmarkN(DSurl + dsInstances[j], n);
+        results = benchmarkN(DSurl + dsInstances[j], n, rk);
         std::cout << dsInstances[j] << " " << std::to_string(results.first) << " "  << std::to_string(results.second) << std::endl;
     }
 
     
 }
 
-void benchmarkAllButPur(int n){
+void benchmarkAllButPur(int n, RecordKeeper * rk){
 
     std::pair<float, float> results;
     /*Classic Instances*/
@@ -172,7 +173,7 @@ void benchmarkAllButPur(int n){
     std::vector<std::string> classicInstances = {"car91", "car92", "ear83", "hec92", "kfu93", "lse91", "rye93", "sta83","tre92","uta92","ute92","yor83"};
     for(int j = 0; j< 12; ++j){
         //std::cout << "-----------------------------------" << std::endl;
-        results = benchmarkN(CLASSICurl + classicInstances[j], n);
+        results = benchmarkN(CLASSICurl + classicInstances[j], n, rk);
         std::cout << classicInstances[j] << " " << std::to_string(results.first) << " "  << std::to_string(results.second) << std::endl;
     }
     
@@ -180,7 +181,7 @@ void benchmarkAllButPur(int n){
     /*BELLIO ET ALL NEW ITC2007 INSTANCES*/
     std::string BETurl = "../../ExamSchedulingTestData/BellioEtAlInstances/ITC2007_";
     for(int j = 1; j<= 12; ++j){
-        results = benchmarkN(BETurl + std::to_string(j) , n);
+        results = benchmarkN(BETurl + std::to_string(j) , n, rk);
         std::cout << "ITC2007_" << std::to_string(j) << " " << std::to_string(results.first) << " "  << std::to_string(results.second) << std::endl;
     }
 
@@ -188,7 +189,7 @@ void benchmarkAllButPur(int n){
     std::string DSurl= "../../ExamSchedulingTestData/BellioEtAlInstances/";
     std::vector<std::string> dsInstances = {"D1-2-17", "D5-1-17", "D5-1-18", "D5-2-17", "D5-2-18","D5-3-18", "D6-1-18", "D6-2-18"};
     for(int j = 0; j< 8; ++j){
-        results = benchmarkN(DSurl + dsInstances[j], n);
+        results = benchmarkN(DSurl + dsInstances[j], n, rk);
         std::cout << dsInstances[j] << " " << std::to_string(results.first) << " "  << std::to_string(results.second) << std::endl;
     }
 
@@ -199,7 +200,7 @@ void benchmarkAllButPur(int n){
 
 int main(){
     srand(time(NULL));
-    benchmarkAll(1);
+    benchmarkAll(1, &rk);
    //testAllTestCases();
     
     /*std::pair<float, float> results;
@@ -210,5 +211,6 @@ int main(){
     //benchmarkDS(1);
     //benchmarkAllButPur(1);
     //benchmarkClassic(1);
+
     return 0;
 }

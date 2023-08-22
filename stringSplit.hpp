@@ -21,16 +21,26 @@ void printIntVec(std::vector<int> vec){
 }
 
 std::vector<std::string> * splitString(std::string in, std::string delim){
-    std::vector<std::string> *  split = new std::vector<std::string>();
-    int currentIndex = 0;
+    std::vector<std::string> * split = new std::vector<std::string>();
 
-    while(currentIndex < in.find_last_of(delim)){
-        split->push_back(in.substr(currentIndex, in.find(delim, currentIndex)));
-        currentIndex = in.find(delim, currentIndex);
+    std::string buffer = "";
+    for(int i = 0; i < in.size(); ++i){
+
+        if(in[i] != ','){
+            buffer += in[i];
+        } 
+        else{
+            if(buffer != ""){
+                split->push_back(buffer);
+                buffer = "";
+            }
+        }
     }
-    return split;
+    split->push_back(buffer);
 
-    
+    //printVec(split);
+
+    return split;
 }
 
 std::vector<std::string> * splitStringBySpace(std::string stringToBeSplit){
