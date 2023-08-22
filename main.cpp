@@ -20,10 +20,8 @@ void Run(std::string url){
 float TestRun(std::string url){
     Graph * graph = readTextFile(url);
     WFCController3(graph);
-    //ThirdStage(graph);
-    //graph->printNormCost();
     optstage2(graph);
-    //optmultistage(graph);
+    std::cout << "Valid Graph: " << graph->validGraph() << std::endl;
     return graph->normalisedCost(true);
 }
 
@@ -201,13 +199,13 @@ void benchmarkAllButPur(int n){
 
 int main(){
     srand(time(NULL));
-    //benchmarkAll(1);
+    benchmarkAll(1);
    //testAllTestCases();
     
-    std::pair<float, float> results;
-    std::string CLASSICurl= "../../ExamSchedulingTestData/CarterEtAl Instances/car91";
+    /*std::pair<float, float> results;
+    std::string CLASSICurl= "../../ExamSchedulingTestData/CarterEtAl Instances/car92";
     results = benchmarkN(CLASSICurl, 1);
-    std::cout << results.first << " " << results.second << std::endl;
+    std::cout << results.first << " " << results.second << std::endl;*/
     
     //benchmarkDS(1);
     //benchmarkAllButPur(1);

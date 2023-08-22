@@ -131,9 +131,9 @@ void optstage2(Graph * g){
                 //std::cout << "Broken Out after " << i << "/" << maxAmountOfIterations << std::endl;
                 break;
             }
-        }
 
-        biggestClasher = getNextNode(biggestClasher, &previouslyChanged);
+            biggestClasher = getNextNode(biggestClasher, &previouslyChanged);
+        }
     }
 
     if(g->normalisedCost(true) < norm){

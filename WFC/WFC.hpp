@@ -140,43 +140,45 @@ void propagate(Graph * g, Node * n){
 
 
 
-/*void collapseNodeWithSearch(Node * n){
-    int avgNum = n->getAvgConflictNumber();
+int findSameCostAwayFromAvg(Node * n, int number){
+    float avgNum = n->getAvgConflictNumber();
+    float furthestDif = 100;
 
-    int furthestDif = -1;
-    std::vector<int> equalPossible = std::vector<int>();
     int biggestCol = -1;
-    for(int i= 0; i < n->possibleColours->size(); ++i){
-        if(abs(n->possibleColours->at(i) - avgNum) > furthestDif){
-            furthestDif = abs(n->possibleColours->at(i) - avgNum);
-            biggestCol = n->possibleColours->at(i);
-            equalPossible.clear();
-            equalPossible.push_back(biggestCol);
-        }
-        else if(abs(n->possibleColours->at(i) - avgNum) == furthestDif){
-            equalPossible.push_back(n->possibleColours->at(i));
-        }
+    for(int i= 0; i < n->conflictArray.size(); ++i){
+        if(n->conflictArray.at(i) == number && abs(avgNum - i) > furthestDif){
+            biggestCol = i;
+            furthestDif =  abs(avgNum - i);
+        }    
     }
 
-    if(equalPossible.size() == 1)n->colour = biggestCol;
+    if(biggestCol != -1)return biggestCol;
 
-    else{
-        n->colour = equalPossible.at(getRandomFromMax(equalPossible.size()));
-    }
-}*/
+    return number;
+}
 
 bool collapseNodeWithConflictArraySearch(Node * n, Graph * g){
     long long minimum = LLONG_MAX;
     int minIndex = -2;
-
+    bool same = false;
     for(int i = 0; i < n->conflictArray.size(); ++i){
-        if(n->conflictArray.at(i) > -1 && n->conflictArray.at(i) < minimum){
-            //std::cout << "Node " << n->examID << ". " << n->conflictArray.at(i) << " " << minimum << std::endl;
-            minimum = n->conflictArray.at(i);
-            minIndex = i;
+        if(n->conflictArray.at(i) > -1){
+            if(n->conflictArray.at(i) < minimum){
+                //std::cout << "Node " << n->examID << ". " << n->conflictArray.at(i) << " " << minimum << std::endl;
+                minimum = n->conflictArray.at(i);
+                minIndex = i;
+                same = false;
+            }
+            else if(n->conflictArray.at(i) == minimum){
+                same = true;
+            }
         }
+        
     }
 
+    if(same){
+        minIndex = findSameCostAwayFromAvg(n, minIndex);
+    }
 
     //std::cout << "collapsedNode: " << minIndex << std::endl;
     n->colour = minIndex;
@@ -185,7 +187,6 @@ bool collapseNodeWithConflictArraySearch(Node * n, Graph * g){
         return true;
     }
     return false;
-
 }
 
 void collapse(Node * n1){
@@ -230,7 +231,9 @@ Node * observe(Graph * graph){
                 index = i;
             }
             //currentNode->degree/currentNode->numberOfStudents < graph->nodes->at(index)->degree/graph->nodes->at(index)->numberOfStudents
-            else if(entropy == lowestEntropy && currentNode->degree/currentNode->numberOfStudents < graph->nodes->at(index)->degree/graph->nodes->at(index)->numberOfStudents){
+            else if(entropy == lowestEntropy && 
+                (float)currentNode->degree/(float)currentNode->numberOfStudents < (float)graph->nodes->at(index)->degree/(float)graph->nodes->at(index)->numberOfStudents){
+                //std::cout << (float)currentNode->degree/(float)currentNode->numberOfStudents << " " << (float)graph->nodes->at(index)->degree/(float)graph->nodes->at(index)->numberOfStudents << std::endl;
                 index = i;
             }
         }
@@ -238,6 +241,41 @@ Node * observe(Graph * graph){
     if(anyZeroEnts)return nullptr;  
         
     return graph->nodes->at(index);
+}
+
+Node * observeNeighbours(Node * n, Graph * graph){
+    int lowestEntropy = 1000000;
+    Node * currentLowest = nullptr;
+    bool anyZeroEnts = false;
+
+    for(auto edge: n->conflicts){
+
+        Node * currentNode = edge->getOtherNode(n);
+
+        int entropy = currentNode->getEntropy();
+
+        if(currentNode->colour == -1){
+
+            if(entropy < lowestEntropy){
+                if(currentNode->getEntropy() == 0){
+                    anyZeroEnts = true;
+                    //std::cout << "ZERRO ENT" << std::endl;
+                }
+                lowestEntropy = currentNode->getEntropy();
+                currentLowest = currentNode;
+            }
+            //currentNode->degree/currentNode->numberOfStudents < graph->nodes->at(index)->degree/graph->nodes->at(index)->numberOfStudents
+            else if(entropy == lowestEntropy && 
+                currentNode->degree/currentNode->numberOfStudents < currentNode->degree/currentLowest->numberOfStudents){
+                    currentLowest = currentNode;
+            }
+        }
+    }
+    if(anyZeroEnts)return nullptr;  
+        
+    if(currentLowest == nullptr)return observe(graph);
+
+    return currentLowest;
 }
 
 
@@ -277,11 +315,12 @@ bool WFC(Graph * graph, Node * startNode){
 
 
     collapse(currentNode);
+    
     placedNodes->push_back(currentNode->examID);
 
     propagate(graph, currentNode);
 
-    currentNode = observe(graph);
+    currentNode = observeNeighbours(currentNode, graph);
 
     while(graphIncomplete(graph, &zeroEntropy)){
         float random = (float)rand()/RAND_MAX;
@@ -304,7 +343,7 @@ bool WFC(Graph * graph, Node * startNode){
             ++count;
         }
         else{
-            currentNode = observe(graph);
+            currentNode = observeNeighbours( currentNode, graph);
         }
     }
 

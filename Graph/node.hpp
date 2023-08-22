@@ -45,7 +45,7 @@ class Node{
 
         void setEntropy(int ent);
 
-        int getAvgConflictNumber();
+        float getAvgConflictNumber();
 
         Node * getHighestConflictNode();
 

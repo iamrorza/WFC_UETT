@@ -259,7 +259,7 @@ void Node::printConflictArray(){
     std::cout << std::endl;
 }
 
-int Node::getAvgConflictNumber(){
+float Node::getAvgConflictNumber(){
     float avgNumber = 0;
     int total = 0;
 
@@ -271,7 +271,7 @@ int Node::getAvgConflictNumber(){
         }
     }
 
-    return round(avgNumber/total);
+    return avgNumber/(float)total;
 }
 
 void Node::debugOutput(){
