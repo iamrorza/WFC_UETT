@@ -17,22 +17,7 @@ int getRandomFromMax(int max){
 }
 
 
-/*
-Propagate - returns true if there is a node with zero entropy
-*/
-bool propagate(Graph * g, Node * n){
-    for(auto edge: n->conflicts){
-        Node * otherNode = edge->getOtherNode(n);
-        if(otherNode->colour == -1){
-            otherNode->updateConflictArray(n, edge->numberOfConflicts);
-            if(otherNode->getEntropy() == 0){
-                //std::cout << "Zero entropy in prop" << std::endl;
-                return true;
-            }
-        }
-    }
-    return false;
-}
+
 
 
 
@@ -154,6 +139,56 @@ Node * observe(Graph * graph){
     return graph->nodes->at(index);
 }
 
+
+Node * propagateAndObserve(Node * n, Graph * graph){
+    int lowestEntropy = 1000000;
+    Node * currentLowest = nullptr;
+
+    for(auto edge: n->conflicts){
+        Node * otherNode = edge->getOtherNode(n);
+        int entropy = otherNode->getEntropy();
+
+        if(otherNode->colour == -1){
+
+            otherNode->updateConflictArray(n, edge->numberOfConflicts);
+
+            if(entropy == 0){
+                //std::cout << "Zero entropy in prop" << std::endl;
+                return nullptr;
+            }
+
+            if(entropy < lowestEntropy){
+                //std::cout << "ENTORPY " << entropy << std::endl;
+                lowestEntropy = entropy;
+                currentLowest = otherNode;
+            }
+            else if(entropy == lowestEntropy && 
+                (float)otherNode->degree/(float)otherNode->numberOfStudents < (float)currentLowest->degree/(float)currentLowest->numberOfStudents){
+                    currentLowest = otherNode;
+            }
+        }
+
+    }
+
+    if(currentLowest == nullptr)return observe(graph);
+    return currentLowest;
+}
+/*
+Propagate - returns true if there is a node with zero entropy
+*/
+bool propagate(Graph * g, Node * n){
+    for(auto edge: n->conflicts){
+        Node * otherNode = edge->getOtherNode(n);
+        if(otherNode->colour == -1){
+            otherNode->updateConflictArray(n, edge->numberOfConflicts);
+            if(otherNode->getEntropy() == 0){
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 Node * observeNeighbours(Node * n, Graph * graph){
     int lowestEntropy = 1000000;
     Node * currentLowest = nullptr;
@@ -203,47 +238,38 @@ bool WFC(Graph * graph, Node * startNode){
     int placed = 1;
     placedNodes->push_back(currentNode->examID);
 
-    propagate(graph, currentNode);
-
-    currentNode = observeNeighbours(currentNode, graph);
     
-    while(placed <= graph->nodes->size()){
-
+    while(placed < graph->nodes->size()){
+        //std::cout << placed << "/" << graph->nodes->size() << std::endl;
         /*
             Current WFC Loop
             Find Node (or choose already placed node) (OBSERVE)
             See if it can collapse, if not, return false
             Propagate
+
+            New?
+            Propagate
+            Find Node (or choose already placed node) (OBSERVE) 
+            See if it can collapse, if not, return false
         */
 
-       
-        float random = (float)rand()/RAND_MAX;
+        currentNode = propagateAndObserve(currentNode, graph);
 
-        if(random < 0.0013 && placed>1){
-            int index = placedNodes->at(getRandomFromMax(placedNodes->size()));
-            currentNode = graph->nodes->at(index-1);
-        }
-        else{
-            currentNode = observeNeighbours(currentNode, graph);
+        if(currentNode == nullptr){
+            //std::cout << placed << "/" << graph->nodes->size() << std::endl;
+            return false;
         }
 
         bool found = collapseNodeWithConflictArraySearch(currentNode, graph);
-        if(random >= 0.0013)++placed;
-
         if(!found)return false;
-        
-        placedNodes->push_back(currentNode->examID);
 
-        bool zeroEnt = propagate(graph, currentNode);
-        if(zeroEnt)return false;
+        ++placed;
 
         if(graph->currentBigCost > graph->lastBigCost){
-        //if(placed > graph->numberOfExams/10 && graph->currentBigCost/placed > graph->lastBigCost/placed){ 
             //std::cout << "Aborting run due to cost. Current " << graph->currentBigCost << " best " << graph->lastBigCost << " with " << placed << "/" << graph->nodes->size() << std::endl;
             return false;
         }
-        
-        
+        placedNodes->push_back(currentNode->examID);        
     }
 
     

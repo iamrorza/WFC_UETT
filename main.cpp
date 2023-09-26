@@ -96,7 +96,7 @@ int main(int argc, char *argv[]){
     int number = std::stoi(argv[2]);
     */
 
-    results = benchmarkN("ExamSchedulingTestData/CarterEtAlInstances/kfu93", 1);
+    results = benchmarkN("ExamSchedulingTestData/CarterEtAlInstances/ear83", 2);
     std::cout << results.first << " " << results.second << std::endl;
     
    

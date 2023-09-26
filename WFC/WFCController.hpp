@@ -93,12 +93,12 @@ void WFCController3(Graph * graph){
         bool success = WFC(graph, node);
         
         if(success){
-            if(bestNormCost > graph->normalisedCost(true)){
+            if(graph->normalisedCost(true) < bestNormCost){
                 graph->debugDegree = node->degree;
                 bestNormCost = graph->lastNormCost;
                 graph->saveGraphNums();
                 graph->lastBigCost = graph->totalCost(true);
-                //std::cout << bestNormCost << std::endl;
+                //std::cout << "New best " << bestNormCost << std::endl;
             }
         }
     }
