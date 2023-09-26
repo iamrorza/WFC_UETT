@@ -19,6 +19,8 @@ class Node{
         
         int degree;
 
+        int currentConflictOptStage;
+
         std::vector<Edge *> conflicts;
 
         Node(int examID, int numberOfStudents);
@@ -85,6 +87,8 @@ class Node{
         int clashWithNeighbours;
 
         float getClashWithNeighbours(bool real);
+
+        int getAmountOfPeriodsWithLowerConflict();
 
 };
 

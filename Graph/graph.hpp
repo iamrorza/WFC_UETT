@@ -27,6 +27,8 @@ Node::Node(int examID, int numberOfStudents){
     this->possibleColours = new std::set<int>();
     this->actualPlacement = -1;
     this->conflictArray = std::vector<long long>();
+
+    this->currentConflictOptStage = 0;
 }
 
 Node::Node(int examID){
@@ -37,6 +39,8 @@ Node::Node(int examID){
     this->possibleColours = new std::set<int>();
     this->actualPlacement = -1;
     this->conflictArray = std::vector<long long>();
+
+    this->currentConflictOptStage = 0;
 }
 
 Edge * Node::isConflicted(int conflictedNode){
@@ -140,6 +144,8 @@ void Node::redoConflictArray(){
             this->updateConflictArray(edge->getOtherNode(this)->colour, edge->numberOfConflicts);
         }
     }
+
+    currentConflictOptStage = this->conflictArray.at(this->colour);
 }
 
 int Node::findSmallestInConflictArray(){
@@ -237,7 +243,6 @@ void Node::updateConflictArray(int nodeColour, int conflicts){
     //TODO For added cost in the simulation, I could change the base of the power to be a higher number than 2
     for(int i  = 1; i <= 5; ++i){
 
-
         if(nodeColour + i < size){
             if(this->conflictArray.at(nodeColour + i) != -1)this->conflictArray.at(nodeColour + i) += conflicts * pow(2, 5-i);
         }
@@ -245,7 +250,6 @@ void Node::updateConflictArray(int nodeColour, int conflicts){
         if(nodeColour - i >= 0){
             if(this->conflictArray.at(nodeColour - i) != -1)this->conflictArray.at(nodeColour - i) += conflicts * pow(2, 5-i);
         }
-
     }
    //this->printConflictArray();
 }
@@ -275,7 +279,7 @@ float Node::getAvgConflictNumber(){
 }
 
 void Node::debugOutput(){
-    std::cout << this->possibleColours->size() << std::endl;
+    std::cout << this->colour << " ";
 }
 
 Node * Node::getHighestConflictNode(){
@@ -286,7 +290,7 @@ Node * Node::getHighestConflictNode(){
         if(best == nullptr && edge->getOtherNode(this)->colour == -1){
             best = edge->getOtherNode(this);
             bestConflict = edge->numberOfConflicts;
-            std::cout << "HERE" << std::endl;
+            //std::cout << "HERE" << std::endl;
         }
         else{
             if(edge->numberOfConflicts > bestConflict){
@@ -371,6 +375,19 @@ int Node::getCurrentCost(){
     }
 
     return cost;
+}
+
+int Node::getAmountOfPeriodsWithLowerConflict(){
+    this->redoConflictArray();
+    int currentConflict = this->conflictArray[this->colour];
+
+    int returnInt = 0;
+    for(int conflict: this->conflictArray){
+        if(conflict > 0 && conflict < currentConflict){
+            ++returnInt;
+        }
+    }
+    return returnInt;
 }
 //EDGE--------------------------------------------------------------------------------------------------------EDGE
 
@@ -458,6 +475,9 @@ class Graph{
         long long lastBigCost;
         long long currentBigCost;
 
+        int debugCount;
+
+        int debugDegree;
         Graph(){
             this->nodes = new std::vector<Node *>();
             this->edges = new std::vector<Edge *>();
@@ -471,6 +491,11 @@ class Graph{
             this->lastBigCost = 100000000;
             this->lastCalculatedBigCost = 100000000;
             this->currentBigCost = 0;
+
+            this->debugCount = 0;
+            this->debugDegree = 0;
+
+            this->biggestDegreeAmount();
         }
 
         void addEdge(int n1, int n2){
@@ -563,7 +588,10 @@ class Graph{
                     colour2 = this->edges->at(i)->node2->actualPlacement;
                 }
 
-                if(abs(colour1-colour2) == 0)std::cout << "CANNOT OCCUR. PROGRAM BROKEN" << std::endl;
+                if(abs(colour1-colour2) == 0){
+                    //std::cout << "CANNOT OCCUR. PROGRAM BROKEN" << std::endl;
+                    return MAXFLOAT;
+                }
                 else if(abs(colour1-colour2) == 1) totalCost += 16 * this->edges->at(i)->numberOfConflicts;
                 else if(abs(colour1-colour2) == 2) totalCost += 8 * this->edges->at(i)->numberOfConflicts;
                 else if(abs(colour1-colour2) == 3) totalCost += 4 * this->edges->at(i)->numberOfConflicts;
@@ -628,10 +656,12 @@ class Graph{
 
         void saveGraphNums(){
             std::vector<int> nums = std::vector<int>();
+            nums.reserve(this->nodes->size());
 
             for(int i = 0; i < this->nodes->size(); ++i){
                 nums.push_back(this->nodes->at(i)->colour);
             }
+
             this->savedGraph = nums;
         }
 
@@ -689,7 +719,7 @@ class Graph{
         }
 
         Node * getBiggestClashNode(std::set<Node *> * alreadyChanged){
-            Node * biggestClasher;
+            Node * biggestClasher = nullptr;
             int biggestClash = 0;
 
             for(auto node: *this->nodes){
@@ -701,6 +731,7 @@ class Graph{
                     }
                 }
             }
+
             return biggestClasher;
         }
         Node * getBiggestClashNode(){
@@ -798,11 +829,8 @@ class Graph{
                     notChanged.push_back(node);
                 }
             }
-            int random = rand()%notChanged.size();
-
             if(notChanged.size() == 0)return nullptr;
-            
-
+            int random = rand()%notChanged.size();
             Node * randomNode = notChanged.at(random);
             return randomNode;
             
@@ -853,6 +881,49 @@ class Graph{
                 }
             }
 
+        }
+
+        std::vector<Node *> * getLowestEntropyNodes(std::set<Node *> * prevChanged){
+            std::vector<Node *> * returnNodes = new std::vector<Node *>();
+            int smallestNodes = this->numberOfPeriods;
+
+            for(auto node: *this->nodes){
+                if(prevChanged->count(node) == 0){
+                    int nodePlacements = node->getAmountOfPeriodsWithLowerConflict();
+                    if(nodePlacements < smallestNodes){
+                        returnNodes->clear();
+                        returnNodes->push_back(node);
+                        smallestNodes = nodePlacements;
+                    }
+                    else if(nodePlacements == smallestNodes){
+                        returnNodes->push_back(node);
+                    }
+                }
+            }
+
+            return returnNodes;
+        }
+
+        Node * getNextNode2(std::set<Node *> * prevChanged){
+            std::vector<Node *> * lowestNodes = this->getLowestEntropyNodes(prevChanged);
+
+            if(lowestNodes->size() == 0)return nullptr;
+            else if(lowestNodes->size() == 1)return lowestNodes->at(0);
+
+            Node * currentLowest = nullptr;
+            int lowestConflict = 1000000;
+
+            for(auto node: *lowestNodes){
+                if(currentLowest == nullptr){
+                    currentLowest = node;
+                    lowestConflict = node->currentConflictOptStage;
+                }
+                else if(lowestConflict > node->currentConflictOptStage){
+                    currentLowest = node;
+                    lowestConflict = node->currentConflictOptStage;
+                }
+            }
+            return currentLowest;
         }
 };
 

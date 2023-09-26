@@ -25,18 +25,18 @@ class RecordKeeper{
                 }
         };
 
-        std::vector<Record> records;
+        std::vector<Record *> * records;
 
-        std::vector<Record> readInRecords(){
-            std::vector<Record> temp = std::vector<Record>();
+        std::vector<Record *> * readInRecords(){
+            std::vector<Record *> * temp = new std::vector<Record *>();
             std::ifstream file(this->url);
 
             if(file.is_open()){
                 std::string line;
                 while(std::getline(file, line) && line != ""){
                     std::vector<std::string> * split = splitString(line, ",");
-                    Record newRecord = Record(split->at(0), std::stof(split->at(1)), std::stof(split->at(2)));
-                    temp.push_back(newRecord);
+                    Record * newRecord = new Record(split->at(0), std::stof(split->at(1)), std::stof(split->at(2)));
+                    temp->push_back(newRecord);
                 }
             }
 
@@ -53,16 +53,16 @@ class RecordKeeper{
 
             if(title.find("/") != -1)title = title.substr(title.find_last_of("/") + 1, title.size());
             
-            for(auto record: this->records){
-                if(title == record.title){
-                    if(normCost < record.normCost){
-                        record.normCost = normCost;
-                        record.time = time;
+            for(auto record: *this->records){
+                if(title == record->title){
+                    if(normCost < record->normCost){
+                        record->normCost = normCost;
+                        record->time = time;
                         std::cout << "Best norm cost on " << title << std::endl;
                     }
-                    if(normCost == record.normCost){
-                        if(time < record.time){
-                            record.time = time;
+                    if(normCost == record->normCost){
+                        if(time < record->time){
+                            record->time = time;
                         }
                     }
                 }
@@ -70,12 +70,12 @@ class RecordKeeper{
         }
 
         void writeOut(){
-            remove("bestRecords.txt");
+            std::remove("bestRecords.txt");
 
             std::ofstream MyFile("bestRecords.txt");
 
-            for(auto record: this->records){
-                MyFile << record.toString() << std::endl;
+            for(auto record: *this->records){
+                MyFile << record->toString() << std::endl;
             }
 
             MyFile.close();

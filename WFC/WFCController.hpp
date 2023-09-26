@@ -63,7 +63,6 @@ void WFCController2(Graph * graph){
             bestNormCost = graph->lastNormCost;
             graph->saveGraphNums();
             graph->lastBigCost = graph->totalCost(true);
-            //std::cout << bestNormCost << std::endl;
         }
         
     
@@ -73,31 +72,38 @@ void WFCController2(Graph * graph){
 }
 
 void WFCController3(Graph * graph){
+
     
     int numberOfIters = 1;
 
     float bestNormCost = 10000;
-    
+    graph->biggestDegreeAmount();
+
+    int degreeOffset = 6;
+    int maxDegreeThreshold = graph->biggestDegree/degreeOffset;
+
     for(auto node: *graph->nodes){ 
-        
+
+        if(node->degree < 15){
+            continue;
+        }
         //std::cout << "Trying run start with node " << node->examID << std::endl;
         graph->resetGraph(graph->numberOfPeriods);
 
         bool success = WFC(graph, node);
-        if(success && bestNormCost > graph->normalisedCost(true)){
-            bestNormCost = graph->lastNormCost;
-            graph->saveGraphNums();
-            graph->lastBigCost = graph->totalCost(true);
-            //std::cout << bestNormCost << std::endl;
+        
+        if(success){
+            if(bestNormCost > graph->normalisedCost(true)){
+                graph->debugDegree = node->degree;
+                bestNormCost = graph->lastNormCost;
+                graph->saveGraphNums();
+                graph->lastBigCost = graph->totalCost(true);
+                //std::cout << bestNormCost << std::endl;
+            }
         }
     }
 
     graph->loadGraph();
-
-    
-
-    
-    
 }
 
 /*void WFCController3(Graph * graph){
@@ -122,4 +128,5 @@ void WFCController3(Graph * graph){
 
     graph->loadGraph();
 }*/
+
 #endif
