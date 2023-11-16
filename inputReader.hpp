@@ -10,6 +10,9 @@
 #include "stringSplit.hpp"
 #include "Graph/graph.hpp"
 
+/*
+    Reads the file and returns a graph
+*/
 Graph * readTextFile(std::string fileURL){
     Graph * graph = new Graph();
     int biggestDeg = 0;
@@ -81,8 +84,6 @@ Graph * readTextFile(std::string fileURL){
                 
         file.close();
     }
-    
-    //std::cout << "THE BIGGEST DEGREE AT THE INPUT IS " << biggestDeg << std::endl;
     graph->setNodesEntropy(graph->numberOfPeriods);
     return graph;
 }
