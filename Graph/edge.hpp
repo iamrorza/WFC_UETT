@@ -15,18 +15,12 @@ class Edge{
 
         Edge(Node * n1, Node * n2);
 
-        Edge(Node * n1, Node * n2, int numOfConflicts);
-
         bool containsNode(int nodeId);
 
         void addEdgesToNode();
 
         Node * getOtherNode(Node * n1);
 
-        void addNumberOfConflicts();
-
         int getConflict();
-
-        bool bothPlaced();
 };
 #endif

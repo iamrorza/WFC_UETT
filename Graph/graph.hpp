@@ -10,14 +10,11 @@
 #include <cmath>
 #include <map>
 #include <random>
-
+#include <climits>
 #include "node.hpp"
 #include "edge.hpp"
 
-int getRandomFromMax2(int max){
-    int random = (std::rand() % max);
-    return random;
-}
+
 //NODE--------------------------------------------------------------------------------------------------------NODE
 Node::Node(int examID, int numberOfStudents){
     this->examID = examID;
@@ -27,22 +24,12 @@ Node::Node(int examID, int numberOfStudents){
     this->possibleColours = new std::set<int>();
     this->actualPlacement = -1;
     this->conflictArray = std::vector<long long>();
-
     this->currentConflictOptStage = 0;
 }
 
-Node::Node(int examID){
-    this->examID = examID;
-    this->numberOfStudents = 0;
-    this->colour = -1; //Setting as -1 as it hasn't been set yet
-    this->degree = 0;
-    this->possibleColours = new std::set<int>();
-    this->actualPlacement = -1;
-    this->conflictArray = std::vector<long long>();
-
-    this->currentConflictOptStage = 0;
-}
-
+/*
+    Returns the edge with the conflicting node
+*/
 Edge * Node::isConflicted(int conflictedNode){
     
     for(int i = 0; i < conflicts.size(); ++i){
@@ -53,74 +40,43 @@ Edge * Node::isConflicted(int conflictedNode){
     return nullptr;
 }
 
+/*
+    Gets exam and period in the output string format
+*/
 std::string Node::getExamAndPeriod(){
     return std::to_string(this->examID) + " " + std::to_string(this->colour) + "; ";
 }
 
+/*
+    Add the edge to the nodes vector that contains the edges
+*/
 void Node::addEdge(Edge * edge){
     this->conflicts.push_back(edge);
     this->degree = this->degree + 1;
 }
 
-std::vector<Node *> * Node::getUncolouredNeighboursWithEntOver1(){
-    std::vector<Node *> * output = new std::vector<Node *>();
-
-    for(int i = 0; i < this->conflicts.size(); ++i){
-        Node * n2 = this->conflicts.at(i)->getOtherNode(this);
-        if(n2->colour == -1 && n2->getEntropy() > 1){
-            output->push_back(n2);
-        }
-    }
-    return output;
-}
-
+/*
+    Removes designated colour from the set of possible colours that the
+    node can be
+*/
 void Node::removeColourFromEntropy(int colour){
 
     if(this->possibleColours->count(colour) > 0){
         this->possibleColours->erase(colour);
     }
-    /*
-    int index = -1;
-    for(int i = 0; i < this->possibleColours->size(); ++i){
-        if(this->possibleColours->at(i) == colour){
-            index = i;
-            break;
-        }
-    }
-
-    if(index != -1){
-        //std::cout << "Colour " << colour << " removed from node " << this->examID << std::endl;
-        this->possibleColours->erase(this->possibleColours->begin() + index);
-        this->possibleColours->shrink_to_fit();
-    } else{
-        //std::cout << "Node " << this->examID << " has already removed the colour " << colour << std::endl;
-    }*/
-
 }
 
-std::vector<Node *> * Node::getUncolouredNeighbours(){
-    std::vector<Node *> * output = new std::vector<Node *>();
-
-    for(int i = 0; i < this->conflicts.size(); ++i){
-        output->push_back(this->conflicts.at(i)->getOtherNode(this));
-    }
-    return output;
-}
-
+/*
+    Returns the amount of possible colours
+    a node can be coloured (a.k.a placed)
+*/
 int Node::getEntropy(){
-    //std::cout << "ENTROPY OF NODE " << this->examID << " IS " << this->possibleColours->size() << "\n";
-    //return this->possibleColours->size();
-
-    //int count = 0;
-    //for(int i = 0; i < this->conflictArray.size(); ++i){
-    //    if(this->conflictArray.at(i) == -1)++count;
-    //}
-
-    //return this->conflictArray.size() - count;
-
     return this->possibleColours->size();
 }
 
+/*
+    Set the initial entropy of a node
+*/
 void Node::setEntropy(int ent){ 
     this->possibleColours->clear();
     for(int j = 0; j < ent; ++j){
@@ -128,14 +84,16 @@ void Node::setEntropy(int ent){
     }
 }
 
+/*
+    Reset the conflict array to make every value 0
+*/
 void Node::resetConflictArray(int ent){
-    
     this->conflictArray.clear();
-    //this->conflictArray.shrink_to_fit();
     this->conflictArray.resize(ent, 0);
-    //this->printConflictArray();
 }
-
+/*
+    Recalculate the conflict array of a node
+*/
 void Node::redoConflictArray(){
     this->resetConflictArray(this->conflictArray.size());
 
@@ -148,6 +106,9 @@ void Node::redoConflictArray(){
     currentConflictOptStage = this->conflictArray.at(this->colour);
 }
 
+/*
+    Find the index of the smallest value in the conflict array
+*/
 int Node::findSmallestInConflictArray(){
     int smallest = 100000;
     int smallestIndex =-1;
@@ -160,6 +121,10 @@ int Node::findSmallestInConflictArray(){
     return smallestIndex;
 }
 
+/*
+    Change the colour of this node, putting the original colour
+    back into the entropy
+*/
 void Node::changeColour(int desiredColour){
     this->possibleColours->erase(this->colour);
     this->possibleColours->insert(desiredColour);
@@ -171,6 +136,9 @@ void Node::changeColour(int desiredColour){
     this->colour = desiredColour;
 }
 
+/*
+    Update conflict array of the chosen node
+*/
 void Node::updateConflictArray(Node * otherNode, int conflicts){
     int colour = otherNode->colour;
     int size = this->conflictArray.size();
@@ -178,7 +146,6 @@ void Node::updateConflictArray(Node * otherNode, int conflicts){
     this->conflictArray.at(colour) = -1;
 
     this->removeColourFromEntropy(colour);
-    //TODO For added cost in the simulation, I could change the base of the power to be a higher number than 2
     for(int i  = 1; i <= 5; ++i){
 
 
@@ -227,20 +194,20 @@ void Node::updateConflictArray(Node * otherNode, int conflicts){
                         break;
 
                 }
-                //this->conflictArray.at(colour - i) += conflicts * pow(2, 5-i);
             }
         }
 
     }
-   //this->printConflictArray();
 }
 
+/*
+    Update conflict array
+*/
 void Node::updateConflictArray(int nodeColour, int conflicts){
     int size = this->conflictArray.size();
 
     this->conflictArray.at(nodeColour) = -1;
 
-    //TODO For added cost in the simulation, I could change the base of the power to be a higher number than 2
     for(int i  = 1; i <= 5; ++i){
 
         if(nodeColour + i < size){
@@ -251,103 +218,12 @@ void Node::updateConflictArray(int nodeColour, int conflicts){
             if(this->conflictArray.at(nodeColour - i) != -1)this->conflictArray.at(nodeColour - i) += conflicts * pow(2, 5-i);
         }
     }
-   //this->printConflictArray();
+
 }
 
-void Node::printConflictArray(){
-    
-    std::cout << this->examID << "(" << this->colour << "): ";
-    for(int i = 0; i < this->conflictArray.size(); ++i){
-        std::cout << this->conflictArray.at(i) <<", ";
-    }
-    std::cout << std::endl;
-}
-
-float Node::getAvgConflictNumber(){
-    float avgNumber = 0;
-    int total = 0;
-
-    for(int i = 0; i < this->conflicts.size(); ++i){
-        Edge * ed = this->conflicts.at(i);
-        if(ed->getOtherNode(this)->colour != -1){
-            avgNumber += ed->numberOfConflicts * ed->getOtherNode(this)->colour;
-            total += ed->numberOfConflicts;
-        }
-    }
-
-    return avgNumber/(float)total;
-}
-
-void Node::debugOutput(){
-    std::cout << this->colour << " ";
-}
-
-Node * Node::getHighestConflictNode(){
-
-    Node * best = nullptr;
-    int bestConflict = 0;
-    for(auto edge: this->conflicts){
-        if(best == nullptr && edge->getOtherNode(this)->colour == -1){
-            best = edge->getOtherNode(this);
-            bestConflict = edge->numberOfConflicts;
-            //std::cout << "HERE" << std::endl;
-        }
-        else{
-            if(edge->numberOfConflicts > bestConflict){
-                best = edge->getOtherNode(this);
-                bestConflict = edge->numberOfConflicts;
-            }
-        }
-    }
-    
-    return best;
-}
-
-void Node::setSecondStagePossible(int graphPeriods){
-    //create set that contains every colour except those that are next to
-    std::set<int> * sspc = new std::set<int>();
-
-    for(int i = 0; i < graphPeriods; ++i){sspc->insert(i);}
-
-    for(Edge * e: this->conflicts){
-        Node * otherNode = e->getOtherNode(this);
-        sspc->erase(otherNode->colour);
-    }
-
-    this->secondStagePossibleColours = sspc;
-}
-
-void Node::thirdStageColourChange(int desiredColour){
-    if(this->secondStagePossibleColours->count(desiredColour) == 1){
-        this->secondStagePossibleColours->erase(desiredColour);
-        this->secondStagePossibleColours->insert(this->colour);
-        this->colour = desiredColour;
-
-    } 
-    else{
-        std::cout << "Not an available colour" << std::endl;
-    }
-}
-
-bool Node::thirdStageActualPlacementChange(int desiredColour){
-
-    if(this->secondStagePossibleColours->count(desiredColour) == 1){
-        this->actualPlacement = desiredColour;
-        return true;
-    }
-    return false;
-}
-
-std::string Node::nodeAndNeighbours(){
-    std::string output = "Node " + std::to_string(this->examID);
-    output = output + "(" + std::to_string(this->colour) + "): ";
-    for(int i = 0; i < this->conflicts.size(); ++i){
-        Node * otherNode = this->conflicts.at(i)->getOtherNode(this);
-        output += std::to_string(otherNode->examID) + "(" + std::to_string(otherNode->colour) + "), ";
-    }
-    return output;
-}
-
+/*
+    Gets the conflict of an individual Node
+*/
 float Node::getClashWithNeighbours(bool real){
     if(real)int colour = this->colour;
     else int colour = this->actualPlacement;
@@ -365,30 +241,8 @@ float Node::getClashWithNeighbours(bool real){
     return total;
 }
 
-int Node::getCurrentCost(){
-    int cost = 0;
 
-    for(auto edge: this->conflicts){
-        if(edge->getOtherNode(this)->colour != -1){
-            cost += edge->getConflict();
-        }
-    }
 
-    return cost;
-}
-
-int Node::getAmountOfPeriodsWithLowerConflict(){
-    this->redoConflictArray();
-    int currentConflict = this->conflictArray[this->colour];
-
-    int returnInt = 0;
-    for(int conflict: this->conflictArray){
-        if(conflict > 0 && conflict < currentConflict){
-            ++returnInt;
-        }
-    }
-    return returnInt;
-}
 //EDGE--------------------------------------------------------------------------------------------------------EDGE
 
 Edge::Edge(Node * n1, Node * n2){
@@ -397,39 +251,43 @@ Edge::Edge(Node * n1, Node * n2){
     this->node2 = n2;
 }
 
-Edge::Edge(Node * n1, Node * n2, int numOfConflicts){
-    this->numberOfConflicts = numOfConflicts;
-    this->node1 = n1;
-    this->node2 = n2;
-}
-
+/*
+    Check if the edge contains node with the specific nodeId
+*/
 bool Edge::containsNode(int nodeId){
     if(this->node1->examID == nodeId)return true;
     if(this->node2->examID == nodeId)return true;
     return false;
 }
+
+/*
+    Adds this edge to the vector within the node that stores connections
+*/
 void Edge::addEdgesToNode(){
     this->node1->addEdge(this);
     this->node2->addEdge(this);
 }
 
+/*
+    Given one node, return the adjoining node in the edge
+*/
 Node * Edge::getOtherNode(Node * n1){
     if(n1 == this->node1)return this->node2;
     else return this->node1;
 }
 
-void Edge::addNumberOfConflicts(){
-    this->numberOfConflicts = this->numberOfConflicts + 1;   
-}
-
+/*
+    Get conflict of a single edge
+    If both nodes are the same, return big cost so that the algorithm does not use this run.
+    This should never be the case though.
+*/
 int Edge::getConflict(){
     int colour1 = this->node1->colour;
     int colour2 = this->node2->colour;
 
     switch(abs(colour1 - colour2)){
         case 0:
-            //std::cout << "Fucked by Node " << this->node1->examID << " and Node " << this->node2->examID << std::endl;
-            return 100000;
+            return 10000000;
         case 1:
             return 16 * this->numberOfConflicts;
         case 2:
@@ -445,9 +303,6 @@ int Edge::getConflict(){
     }
 }
 
-bool Edge::bothPlaced(){
-    return this->node1->colour != -1 && this->node2->colour != -1;
-}
 
 //GRAPH--------------------------------------------------------------------------------------------------------GRAPH
 class Graph{
@@ -475,9 +330,7 @@ class Graph{
         long long lastBigCost;
         long long currentBigCost;
 
-        int debugCount;
-
-        int debugDegree;
+       
         Graph(){
             this->nodes = new std::vector<Node *>();
             this->edges = new std::vector<Edge *>();
@@ -492,12 +345,12 @@ class Graph{
             this->lastCalculatedBigCost = 100000000;
             this->currentBigCost = 0;
 
-            this->debugCount = 0;
-            this->debugDegree = 0;
-
             this->biggestDegreeAmount();
         }
 
+        /*
+            Add an edge to the graph
+        */
         void addEdge(int n1, int n2){
             Node * node1 = (this->nodes->at(n1-1));
             Node * node2 = (this->nodes->at(n2-1));
@@ -508,19 +361,16 @@ class Graph{
             e->addEdgesToNode();
         }
 
-        void addEdge2(Node * n1, Node * n2, int numberOfConflicts){
-
-            Edge * e = new Edge(n1, n2, numberOfConflicts);
-            
-            this->edges->push_back(e);
-            e->addEdgesToNode();
-        }
-
+        /*
+            Add node to the Graph
+        */
         void addNode(Node * node){
             this->nodes->push_back(node);
         }
 
- 
+        /*
+            Get output string for validation
+        */
         std::string outputString(){
             std::string output = "";
             for(int i = 0; i < this->nodes->size(); ++i){
@@ -529,37 +379,30 @@ class Graph{
             return output;
         }
 
-        int getChromaticNumber(){
-            std::set<int> ints = std::set<int>();
-
-            for(int i = 0; i < this->nodes->size(); ++i){
-                ints.insert(this->nodes->at(i)->colour);
-            }
-            return ints.size();
-        }
-
+        /*
+            Resets every node and return currentBigCost (Cumulative total) to 0
+        */
         void resetGraph(int entropy){
             for(int i = 0; i < this->nodes->size(); ++i){
                 this->nodes->at(i)->colour = -1;
                 this->nodes->at(i)->resetConflictArray(entropy);
                 this->nodes->at(i)->setEntropy(entropy);
             }
-            //this->setNodesEntropy(entropy);
             this->currentBigCost = 0;
         }
-
+    
+        /*
+            Set the entropy of a node with 'number'
+        */
         void setNodesEntropy(int number){
             for(int i = 0; i < this->nodes->size(); ++i){
                 this->nodes->at(i)->setEntropy(number);
             }
         }
-        void debugNodes(){
-            for(int i = 0; i < this->nodes->size(); ++i){
-                this->nodes->at(i)->debugOutput();
-            }
-        }
-        void deleteGraph(){}
 
+        /*
+            Sets the biggestDegree amount in the graph
+        */
         void biggestDegreeAmount(){
             int biggest = 0;
             for(int i = 0; i < this->nodes->size(); ++i){
@@ -568,13 +411,17 @@ class Graph{
                 }
             }
             this->biggestDegree = biggest;
-            //std::cout << "Biggest Degree of graph is " << this->biggestDegree << std::endl;
         }
 
+
+        /*
+            Return cost of solution before it is normalised. 
+            If setcolour, uses the allocated colour/placement of the node: 'colour' variable
+            Otherwise uses the 'actualColour variable
+        */
         float totalCost(bool setColour){
             int totalCost = 0;
-            //std::cout << "Exams: " << this->numberOfExams << ", Students: " << this->numberOfStudents << ", Periods: " << this->numberOfPeriods << std::endl;
-            
+
             for(int i= 0; i < this->edges->size(); ++i){
                 Node * n1 = this->edges->at(i)->node1;
                 Node * n2 = this->edges->at(i)->node2;
@@ -589,7 +436,6 @@ class Graph{
                 }
 
                 if(abs(colour1-colour2) == 0){
-                    //std::cout << "CANNOT OCCUR. PROGRAM BROKEN" << std::endl;
                     return MAXFLOAT;
                 }
                 else if(abs(colour1-colour2) == 1) totalCost += 16 * this->edges->at(i)->numberOfConflicts;
@@ -598,13 +444,15 @@ class Graph{
                 else if(abs(colour1-colour2) == 4) totalCost += 2 * this->edges->at(i)->numberOfConflicts;
                 else if(abs(colour1-colour2) == 5) totalCost += 1 * this->edges->at(i)->numberOfConflicts;
             }
-            //std::cout << "Total Cost: " << totalCost << std::endl;
             return totalCost;
         }
 
-        void printGraphInfo(){
-            std::cout << "Exams: " << this->numberOfExams << ", Students: " << this->numberOfStudents << ", Periods: " << this->numberOfPeriods << std::endl;
-        }
+        /*
+            Return normalised cost. 
+            If setcolour, uses the allocated colour/placement of the node: 'colour' variable
+            Otherwise uses the 'actualColour variable
+        */
+
         float normalisedCost(bool setColour){
             float total = this->totalCost(setColour);
             float normCost = total/this->numberOfStudents;
@@ -613,47 +461,9 @@ class Graph{
             return normCost;
         }
 
-        void printNormCost(){
-            std::cout <<  "Normalised Cost " << normalisedCost(true) << std::endl;
-        }
-
-        int numOfConflicts(){
-            return this->edges->size();
-        }
-
-        bool seeIfAnyColours(int col){
-            for(auto node: *nodes){
-                if(node->colour == col){return true;}
-            }
-            return false;
-        }
-
-        void setColourAsActual(){
-            for(int i = 0; i < this->nodes->size(); ++i){
-                this->nodes->at(i)->colour = this->nodes->at(i)->actualPlacement;
-            }   
-        }
-
-        void printColourvsActual(){
-            for(int i = 0; i < this->nodes->size(); ++i){
-                std::cout << "NODe " << i << " " << this->nodes->at(i)->colour << " " << this->nodes->at(i)->actualPlacement << std::endl;
-            }   
-        }
-
-        void printColour(){
-            for(int i = 0; i < this->nodes->size(); ++i){
-                std::cout << "NODe " << i << " " << this->nodes->at(i)->colour << std::endl;
-            }   
-        }
-
-        std::vector<Node *> getNodesFromColour(int colour){
-            std::vector<Node *> temp = std::vector<Node *>();
-            for(auto node : *this->nodes){
-                if(node->colour == colour)temp.push_back(node);
-            }
-            return temp;
-        }
-
+        /*
+            Save graph numbers in a vector stored in the graph
+        */
         void saveGraphNums(){
             std::vector<int> nums = std::vector<int>();
             nums.reserve(this->nodes->size());
@@ -665,12 +475,18 @@ class Graph{
             this->savedGraph = nums;
         }
 
+        /*
+            Loads graph from the saved graph numbers
+        */
         void loadGraph(){
             for(int i = 0 ; i < this->numberOfExams; ++i){
                 this->nodes->at(i)->colour = this->savedGraph.at(i);
             }
         }
 
+        /*
+            Checks that Graph is valid
+        */
         bool validGraph(){
             for(int i = 0; i < this->edges->size(); ++i){
                 if(this->edges->at(i)->node1->colour == this->edges->at(i)->node2->colour || 
@@ -681,147 +497,20 @@ class Graph{
             return true;
         }
 
-        void putNoiseExamsInVec(){
-            for(auto node: *this->nodes){
-                if(node->conflicts.size() == 0){
-                    this->noiseExams->push_back(node);
-                    this->removeNodeFromExamVec(node);
-                }
-            }
-        }
-
-        void pruneExams(){
-            for(auto node: *this->nodes){
-                if(node->conflicts.size() == 1){
-                    this->prunedExams->push_back(node);
-                    this->removeNodeFromExamVec(node);
-                }
-            }
-        }
-
-        void removeNodeFromExamVec(Node * n){
-            auto it = std::find(this->nodes->begin(), this->nodes->end(), n);
-            if (it != this->nodes->end()) {
-                this->nodes->erase(it);
-            }
-        }
-
+         /*
+            Sets the value of nodes to their placeholder (This should already be the case
+            but in some instances, without it it doesn't work)
+        */
         void setAllNodesActualAsColour(){
             for(auto node: *this->nodes){
                 node->actualPlacement = node->colour;
             }
         }
 
-        void printNodesAndNeigh(){
-            for(auto node: *this->nodes){
-                std::cout << node->nodeAndNeighbours() << std::endl;
-            }
-        }
-
-        Node * getBiggestClashNode(std::set<Node *> * alreadyChanged){
-            Node * biggestClasher = nullptr;
-            int biggestClash = 0;
-
-            for(auto node: *this->nodes){
-                if(alreadyChanged->count(node) != 1){
-                    node->getClashWithNeighbours(true);
-                    if(node->clashWithNeighbours >= biggestClash){
-                        biggestClash = node->clashWithNeighbours;
-                        biggestClasher = node;
-                    }
-                }
-            }
-
-            return biggestClasher;
-        }
-        Node * getBiggestClashNode(){
-            Node * biggestClasher;
-            int biggestClash = 0;
-
-            for(auto node: *this->nodes){
-                node->getClashWithNeighbours(true);
-                if(node->clashWithNeighbours >= biggestClash){
-                    biggestClash = node->clashWithNeighbours;
-                    biggestClasher = node;
-                }
-            }
-            
-            return biggestClasher;
-        }
-        Node * getBiggestClashNodePerStudent(std::set<Node *> * alreadyChanged){
-            Node * biggestClasher;
-            float biggestClash = 0;
-
-            for(auto node: *this->nodes){
-
-                if(alreadyChanged->count(node) != 1){
-
-                    node->getClashWithNeighbours(true);
-
-                    if(node->clashWithNeighbours >= biggestClash){
-                        biggestClash = node->clashWithNeighbours;
-                        biggestClasher = node;
-                    }
-                }
-            }
-            return biggestClasher;
-        }
-
-        void getRidOfNoiseAndOneDegreeNodes(){
-            this->pruneExams();
-            this->putNoiseExamsInVec();
-
-            std::cout << "Noise: " << this->noiseExams->size() << " , Pruned: " << this->prunedExams << std::endl;
-        }
-
-        std::map<int,int> getMap(){
-            std::map<int, int> newMap = std::map<int, int>();
-
-            for(auto node: *this->nodes){
-                newMap[node->examID] = node->colour;
-            }
-
-            return newMap;
-        }
-
-        void useMap(std::map<int,int> map){
-            for(auto node: *this->nodes){
-                node->colour = map[node->colour];
-            }
-        }
-
-        void setUpNodesForOpt(){
-            for(auto node: *this->nodes){
-                node->actualPlacement = node->colour;
-            }
-        }
-
-        Node * getHighestConflictNode(Node * othernode){
-            int biggestCost = 0;
-            Node * best = nullptr;
-
-            for(auto node: *this->nodes){
-                if(node->colour != -1 && node != othernode){
-                    if(node->getCurrentCost() > biggestCost){
-                        biggestCost = node->getCurrentCost();
-                        best = node;
-                    }
-                }
-            }
-            return best;
-        }
-
-        bool invalidGraphNotCountingUnplaced(){
-            for(auto edge: *this->edges){
-                if(edge->bothPlaced()){
-                    if(edge->node1->colour == edge->node2->colour)return true;
-                }
-            }
-            return false;
-        }
-
+        /*
+            Get random node from graph that is not in the already changed set.
+        */
         Node * getRandomNode(std::set<Node *> * alreadyChanged){
-
             std::vector<Node *> notChanged = std::vector<Node *>();
 
             for(auto node: *this->nodes){
@@ -835,100 +524,12 @@ class Graph{
             return randomNode;
             
         }
-
-
-        std::set<Node *> * getNRandomNodes(std::set<Node *> * alreadyChanged, int n){
-            std::set<Node *> * chosenNodes = new std::set<Node *>();
-
-            std::vector<Node *> notChanged = std::vector<Node *>();
-
-            for(auto node: *this->nodes){
-                if(alreadyChanged->count(node) == 0){
-                    notChanged.push_back(node);
-                }
-            }
-
-            if(notChanged.size() <= n)return nullptr;
-
-            std::srand(unsigned(std::time(nullptr)));
-
-            std::vector<int> randNum = std::vector<int>();
-
-            for(int i = 0; i < n; ++i)randNum.push_back(rand() % notChanged.size());
-
-    
-
-            for(auto randomNumber: randNum)chosenNodes->insert(notChanged.at(randomNumber));
-
-            return chosenNodes;
-        }
-
-        void rotate(){
-            int rotate = 0;
-            int bestRotate = 1000000;
-            for(int i = 1; i <= this->numberOfPeriods; ++i){
-                for(auto node: *this->nodes){
-                    node->actualPlacement = (node->colour + i)%this->numberOfPeriods;
-                }
-                if(this->normalisedCost(false) < bestRotate){
-                    rotate = i;
-                }
-            }
-            if(rotate != this->numberOfPeriods){
-                std::cout << "Rotated by " << rotate << std::endl;
-                for(auto node: *this->nodes){
-                    node->colour = (node->colour + rotate)%this->numberOfPeriods;
-                }
-            }
-
-        }
-
-        std::vector<Node *> * getLowestEntropyNodes(std::set<Node *> * prevChanged){
-            std::vector<Node *> * returnNodes = new std::vector<Node *>();
-            int smallestNodes = this->numberOfPeriods;
-
-            for(auto node: *this->nodes){
-                if(prevChanged->count(node) == 0){
-                    int nodePlacements = node->getAmountOfPeriodsWithLowerConflict();
-                    if(nodePlacements < smallestNodes){
-                        returnNodes->clear();
-                        returnNodes->push_back(node);
-                        smallestNodes = nodePlacements;
-                    }
-                    else if(nodePlacements == smallestNodes){
-                        returnNodes->push_back(node);
-                    }
-                }
-            }
-
-            return returnNodes;
-        }
-
-        Node * getNextNode2(std::set<Node *> * prevChanged){
-            std::vector<Node *> * lowestNodes = this->getLowestEntropyNodes(prevChanged);
-
-            if(lowestNodes->size() == 0)return nullptr;
-            else if(lowestNodes->size() == 1)return lowestNodes->at(0);
-
-            Node * currentLowest = nullptr;
-            int lowestConflict = 1000000;
-
-            for(auto node: *lowestNodes){
-                if(currentLowest == nullptr){
-                    currentLowest = node;
-                    lowestConflict = node->currentConflictOptStage;
-                }
-                else if(lowestConflict > node->currentConflictOptStage){
-                    currentLowest = node;
-                    lowestConflict = node->currentConflictOptStage;
-                }
-            }
-            return currentLowest;
-        }
 };
 
 
-//FUNCTIONS TO DO WITH THE GRAPH
+/*
+    Adds edges between nodes in the conflict classes. If a node already exists, increase its sise by one
+*/
 void addEdgesToConflictingClasses(std::vector<int> * conflictClasses, Graph * graph){
     int numConflicts = conflictClasses->size();
     for(int i = 0; i < numConflicts; ++i){
