@@ -93,7 +93,7 @@ void benchmarkAll(int n){
 int main(int argc, char *argv[]){
     srand(time(NULL));
 
-    benchmarkAll(2);
+    benchmarkAll(50);
 
     return 0;
 }
