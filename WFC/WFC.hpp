@@ -124,7 +124,6 @@ bool WFC(Graph * graph, Node * startNode){
     currentNode = startNode;
     currentNode->colour = 0;
     int placed = 1;
-    placedNodes->push_back(currentNode->examID);
 
     
     while(placed < graph->nodes->size()){
@@ -147,8 +146,7 @@ bool WFC(Graph * graph, Node * startNode){
         */
         if(graph->currentBigCost > graph->lastBigCost){
             return false;
-        }
-        placedNodes->push_back(currentNode->examID);        
+        }      
     }
 
     return true;
