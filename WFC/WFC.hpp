@@ -118,12 +118,8 @@ Node * propagateAndObserve(Node * n, Graph * graph){
         Cumulative Cost is larger than that of the last successful run
 */
 bool WFC(Graph * graph, Node * startNode){
-    
-    bool zeroEntropy = false;
 
     Node * currentNode;
-
-    std::vector<int> * placedNodes = new std::vector<int>();
 
     currentNode = startNode;
     currentNode->colour = 0;
